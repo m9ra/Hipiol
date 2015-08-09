@@ -12,7 +12,7 @@ namespace Hipiol.Events
     /// Channel that is used for sending events between processing threads.
     /// Events can be raised in multi-threaded manner. However they are recieved only by single thread.
     /// </summary>
-    public abstract class EventChannel<Event>
+    public abstract class EventChannelBase<Event>
         where Event : EventBase
     {
         /// <summary>

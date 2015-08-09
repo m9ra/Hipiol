@@ -45,9 +45,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Events\EventBase.cs" />
-    <Compile Include="Events\EventChannel.cs" />
+    <Compile Include="Events\EventChannelBase.cs" />
+    <Compile Include="Events\IOChannel.cs" />
+    <Compile Include="Network\NetworkManager.cs" />
+    <Compile Include="PoolConfiguration.cs" />
     <Compile Include="IOPool.cs" />
     <Compile Include="Memory\Block.cs" />
+    <Compile Include="Memory\MemoryManager.cs" />
     <Compile Include="Network\Client.cs" />
     <Compile Include="Network\ConnectionEvent.cs" />
     <Compile Include="Network\NetworkDataEvent.cs" />

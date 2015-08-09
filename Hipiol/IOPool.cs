@@ -44,6 +44,37 @@ namespace Hipiol
     /// </summary>
     public class IOPool
     {
+        /// <summary>
+        /// Current configuration of the pool. After initialization routines are called, configuration cannot be changed.
+        /// </summary>
+        public readonly PoolConfiguration Configuration;
+
+        /// <summary>
+        /// Here are processed all events of the pool.
+        /// </summary>
+        private readonly IOChannel _iochannel = new IOChannel();
+
+        /// <summary>
+        /// Manager that handles memory blocks.
+        /// </summary>
+        private MemoryManager _memory;
+
+        private NetworkManager _network;
+
+        private ClientAccepted _clientAcceptedHandler;
+
+        private ClientDisconnected _clientDisconnectedHandler;
+
+        private DataReceived _dataReceivedHandler;
+
+        private DataBlockSent _dataBlockSentHandler;
+
+        public IOPool()
+        {
+            //set default configuration
+            Configuration = new PoolConfiguration();
+        }
+
         public void Send(Client client, Block block)
         {
             throw new NotImplementedException();
@@ -76,7 +107,18 @@ namespace Hipiol
         /// <param name="localPort">Number of given local port where listening will be started.</param>
         public void StartListening(int localPort)
         {
-            throw new NotImplementedException();
+            if (_clientAcceptedHandler == null || _clientDisconnectedHandler == null)
+                throw new NotSupportedException("Cannot start listening without client handlers.");
+
+            if (_dataReceivedHandler == null || _dataBlockSentHandler == null)
+                throw new NotSupportedException("Cannot start listening without data handlers.");
+
+            if (_network != null)
+                throw new NotSupportedException("Cannot start listening twice.");
+
+            Configuration.Freeze();
+            _network = new NetworkManager(_iochannel, Configuration);
+            _network.StartListening(localPort);
         }
 
         /// <summary>
@@ -86,7 +128,17 @@ namespace Hipiol
         /// <param name="clientDisconnectedHandler">Client disconnection is reported by this handler.</param>
         public void SetClientHandlers(ClientAccepted clientAcceptedHandler, ClientDisconnected clientDisconnectedHandler)
         {
-            throw new NotImplementedException();
+            if (clientAcceptedHandler == null)
+                throw new ArgumentNullException("clientAcceptedHandler");
+
+            if (clientDisconnectedHandler == null)
+                throw new ArgumentNullException("clientDisconnectedHandler");
+
+            if (_clientAcceptedHandler != null || _clientDisconnectedHandler != null)
+                throw new NotSupportedException("Cannot change client handlers.");
+
+            _clientAcceptedHandler = clientAcceptedHandler;
+            _clientDisconnectedHandler = clientDisconnectedHandler;
         }
 
         /// <summary>
@@ -96,7 +148,17 @@ namespace Hipiol
         /// <param name="dataBlockSentHandler">Successful completition of data block sending is reporeted by this handler. It is called just once for every <see cref="Send"/> if sending is successful.</param>
         public void SetDataHandlers(DataReceived dataReceivedHandler, DataBlockSent dataBlockSentHandler)
         {
-            throw new NotImplementedException();
+            if (dataReceivedHandler == null)
+                throw new ArgumentNullException("dataReceivedHandler");
+
+            if (dataBlockSentHandler == null)
+                throw new ArgumentNullException("dataBlockSentHandler");
+
+            if (_dataReceivedHandler != null || _dataBlockSentHandler != null)
+                throw new NotSupportedException("Cannot change data handlers.");
+
+            _dataReceivedHandler = dataReceivedHandler;
+            _dataBlockSentHandler = dataBlockSentHandler;
         }
 
         /// <summary>
@@ -106,7 +168,27 @@ namespace Hipiol
         /// <returns>The created block.</returns>
         public Block CreateConstantBlock(byte[] data)
         {
-            throw new NotImplementedException();
+            var memory = getMemoryManager();
+            return memory.CreateConstantBlock(data);
         }
+
+        #region Private utilities
+
+        /// <summary>
+        /// Gets or creates memory manager if possible. Ensure that configuration won't be changed further.
+        /// </summary>
+        /// <returns></returns>
+        private MemoryManager getMemoryManager()
+        {
+            if (_memory == null)
+            {
+                Configuration.Freeze();
+                _memory = new MemoryManager(Configuration);
+            }
+
+            return _memory;
+        }
+
+        #endregion
     }
 }

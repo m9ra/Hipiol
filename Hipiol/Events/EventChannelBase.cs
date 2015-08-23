@@ -69,7 +69,7 @@ namespace Hipiol.Events
 
                 foreach (var eventObject in _pendingEvents)
                 {
-
+                    Process(eventObject);
                 }
             }
         }

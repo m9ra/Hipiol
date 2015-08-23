@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Threading;
+using System.Net.Sockets;
+
 using Hipiol.Memory;
 using Hipiol.Events;
 using Hipiol.Network;
@@ -49,17 +52,34 @@ namespace Hipiol
         /// </summary>
         public readonly PoolConfiguration Configuration;
 
+        #region Event storages
+
+        /// <summary>
+        /// Storage for accepted events.
+        /// </summary>
+        private readonly EventStorage<ClientAcceptedEvent> _clientAcceptedEvents = new EventStorage<ClientAcceptedEvent>();
+
+        #endregion
+
+        /// <summary>
+        /// Manager thata handleas network communication.
+        /// </summary>
+        internal NetworkManager Network { get; private set; }
+
         /// <summary>
         /// Here are processed all events of the pool.
         /// </summary>
-        private readonly IOChannel _iochannel = new IOChannel();
+        private readonly IOChannel _iochannel;
+
+        /// <summary>
+        /// Thread which processes events for _iochannel.
+        /// </summary>
+        private readonly Thread _eventThread;
 
         /// <summary>
         /// Manager that handles memory blocks.
         /// </summary>
         private MemoryManager _memory;
-
-        private NetworkManager _network;
 
         private ClientAccepted _clientAcceptedHandler;
 
@@ -73,6 +93,11 @@ namespace Hipiol
         {
             //set default configuration
             Configuration = new PoolConfiguration();
+
+            _iochannel = new IOChannel(this);
+
+            _eventThread = new Thread(_iochannel.ProcessEvents);
+            _eventThread.Start();
         }
 
         public void Send(Client client, Block block)
@@ -113,12 +138,12 @@ namespace Hipiol
             if (_dataReceivedHandler == null || _dataBlockSentHandler == null)
                 throw new NotSupportedException("Cannot start listening without data handlers.");
 
-            if (_network != null)
+            if (Network != null)
                 throw new NotSupportedException("Cannot start listening twice.");
 
             Configuration.Freeze();
-            _network = new NetworkManager(_iochannel, Configuration);
-            _network.StartListening(localPort);
+            Network = new NetworkManager(this);
+            Network.StartListening(localPort);
         }
 
         /// <summary>
@@ -187,6 +212,28 @@ namespace Hipiol
             }
 
             return _memory;
+        }
+
+        #endregion
+
+        #region Firing routines
+
+        /// <summary>
+        /// Fires event that handles client accepted on given socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        internal void Fire_AcceptClient(Socket socket)
+        {
+            var time = DateTime.Now;
+            var evt = _clientAcceptedEvents.GetEvent();
+            evt.Socket = socket;
+            evt.ArrivalTime = time;
+            _iochannel.EnqueueEvent(evt);
+        }
+
+        internal void Fire_RegisteredClient(Client client)
+        {
+            _clientAcceptedHandler(client);
         }
 
         #endregion

@@ -11,16 +11,25 @@ using Hipiol.Events;
 
 namespace Hipiol.Network
 {
+    /// <summary>
+    /// Firstly, client is accepted -> registered -> active -> disposed.
+    /// </summary>
     class NetworkManager
     {
-        private readonly EventChannelBase<EventBase> _channel;
+        private readonly IOPool _pool;
 
-        private readonly PoolConfiguration _configuration;
+        private readonly ClientInternal[] _clientSlots;
 
-        internal NetworkManager(EventChannelBase<EventBase> channel, PoolConfiguration configuration)
+        private readonly Stack<int> _freeSlots;
+
+        internal NetworkManager(IOPool pool)
         {
-            _channel = channel;
-            _configuration = configuration;
+            _pool = pool;
+            _clientSlots = new ClientInternal[pool.Configuration.MaxClientCount];
+            _freeSlots = new Stack<int>(_clientSlots.Length);
+
+            for (var i = 0; i < _clientSlots.Length; ++i)
+                _freeSlots.Push(i);
         }
 
         internal void StartListening(int localPort)
@@ -45,7 +54,7 @@ namespace Hipiol.Network
 
             //set listening socket
             listenSocket.Bind(endPoint);
-            listenSocket.Listen(_configuration.AcceptBacklog);
+            listenSocket.Listen(_pool.Configuration.AcceptBacklog);
 
             //create event args object shared for all AcceptAsync calls
             var e = createAcceptEventArgs();
@@ -95,7 +104,25 @@ namespace Hipiol.Network
         /// <param name="e">Description of client to accept.</param>
         private void acceptClient(SocketAsyncEventArgs e)
         {
-            throw new NotImplementedException();
+            _pool.Fire_AcceptClient(e.AcceptSocket);
+        }
+
+        #endregion
+
+        #region Client registration
+
+        internal Client RegisterClient(Socket socket, DateTime arrivalTime)
+        {
+            if (_freeSlots.Count < 0)
+                throw new NotImplementedException("Limit for count of clients has been reached");
+
+            var freeSlot = _freeSlots.Pop();
+
+            //key for slot is set when client is disposed - because of preventing operations on disposed clients
+            _clientSlots[freeSlot].Socket = socket;
+            _clientSlots[freeSlot].ArrivalTime = arrivalTime;
+
+            return new Client(freeSlot, _clientSlots[freeSlot].Key);
         }
 
         #endregion

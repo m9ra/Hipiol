@@ -27,6 +27,11 @@ namespace Hipiol
         public readonly int DynamicMemoryLimit = 10 * MB;
 
         /// <summary>
+        /// Maximum count of network clients that can be handled in parallel.
+        /// </summary>
+        public int MaxClientCount = 10000;
+
+        /// <summary>
         /// How many clients in accept backlog could be stored.
         /// </summary>
         public int AcceptBacklog = 1024;

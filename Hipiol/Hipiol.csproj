@@ -51,6 +51,8 @@
     <Compile Include="IOChannel.cs" />
     <Compile Include="Network\ClientAcceptedEvent.cs" />
     <Compile Include="Network\ClientInternal.cs" />
+    <Compile Include="Network\Controllers.cs" />
+    <Compile Include="Network\DataReceivedEvent.cs" />
     <Compile Include="Network\NetworkManager.cs" />
     <Compile Include="PoolConfiguration.cs" />
     <Compile Include="IOPool.cs" />

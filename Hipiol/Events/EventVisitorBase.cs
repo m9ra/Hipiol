@@ -11,5 +11,7 @@ namespace Hipiol.Events
     abstract class EventVisitorBase
     {
         abstract internal void Visit(ClientAcceptedEvent e);
+
+        abstract internal void Visit(DataReceivedEvent e);
     }
 }

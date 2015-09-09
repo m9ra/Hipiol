@@ -10,7 +10,7 @@ using Hipiol.Network;
 
 namespace Hipiol.PerformanceTest.Network
 {
-    class SimpleServer
+    class TestServer
     {
         internal readonly int ServerPort = 12345;
 
@@ -22,7 +22,7 @@ namespace Hipiol.PerformanceTest.Network
 
         private readonly Dictionary<Client, int> _clientState = new Dictionary<Client, int>();
 
-        internal SimpleServer()
+        internal TestServer(int maxParallelClientCount)
         {
             _pool = new IOPool();
             _data = prepareData(_pool).ToList();
@@ -44,44 +44,49 @@ namespace Hipiol.PerformanceTest.Network
             return blocks;
         }
 
-        private void _dataReceived(Client client, Block block)
+        private void _dataReceived(DataTransferController controller, Block block)
         {
             if (block == null)
             {
                 //no data are available for the client - there is probably an timeout
                 //we won't generate any response
-                _pool.Disconnect(client);
+                controller.Disconnect();
                 return;
             }
+
+            if (controller.ReceivedBytes == 0)
+                //nothing to do
+                return;
 
             throw new NotImplementedException();
         }
 
-        private void _dataBlockSent(Client client)
+        private void _dataBlockSent(DataTransferController controller)
         {
-            var state = _clientState[client];
-            _pool.Send(client, _data[state]);
+            var state = _clientState[controller.Client];
+            controller.Send(_data[state]);
 
             var newstate = state + 1;
             if (newstate >= _data.Count)
-                _pool.Disconnect(client);
+                controller.Disconnect();
 
-            _clientState[client] = newstate;
+            _clientState[controller.Client] = newstate;
         }
 
-        private void _clientAccepted(Client client)
+        private void _clientAccepted(ClientController controller)
         {
+            var client = controller.Client;
             _clients.Add(client);
             _clientState.Add(client, 0);
 
             //we will allow receiving of data for the client.
-            _pool.AllowReceive(client, 1000);
+            controller.AllowReceive(0);
         }
 
-        private void _clientDisconnected(Client client)
+        private void _clientDisconnected(ClientController controller)
         {
-            _clients.Remove(client);
-            _clientState.Remove(client);
+            _clients.Remove(controller.Client);
+            _clientState.Remove(controller.Client);
         }
     }
 }

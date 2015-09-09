@@ -7,22 +7,32 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 
+using Hipiol.Memory;
+
 namespace Hipiol.Network
 {
     /// <summary>
     /// Internal representation of the client.
     /// </summary>
-    struct ClientInternal
+    class ClientInternal
     {
-        /// <summary>
-        /// Key which ensures <see cref="Client"/> compatibility.
-        /// </summary>
-        internal int Key;
-
         internal Socket Socket;
 
         internal DateTime ArrivalTime;
 
+        internal Client Client;
 
+        internal readonly SocketAsyncEventArgs ReceiveEventArgs = new SocketAsyncEventArgs();
+
+        internal Block ReceiveBuffer;
+
+        internal bool IsReceiving;
+
+        internal ClientInternal(NetworkManager manager, int clientIndex)
+        {
+            Client = new Client(clientIndex, 0);
+
+            ReceiveEventArgs.Completed += (o,e) => manager.HandleReceive(this);
+        }
     }
 }

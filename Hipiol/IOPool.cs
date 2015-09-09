@@ -17,28 +17,28 @@ namespace Hipiol
     /// Delegate used for client accepted events.
     /// <remarks>Given client belongs to a different object every time.</remarks>
     /// </summary>
-    /// <param name="client">Client which was accepted</param>
-    public delegate void ClientAccepted(Client client);
+    /// <param name="controller">Controller with accepted client.</param>
+    public delegate void ClientAccepted(ClientController controller);
 
     /// <summary>
     /// Delegate used for client disconnected events.
     /// <remarks>Disconnected event is raised just once for every accepted client.</remarks>
     /// </summary>
-    /// <param name="client">Client which was disconnected.</param>
-    public delegate void ClientDisconnected(Client client);
+    /// <param name="controller">Controller with disconnected client.</param>
+    public delegate void ClientDisconnected(ClientController controller);
 
     /// <summary>
     /// Delegate used for data received events.
     /// </summary>
-    /// <param name="client">Client which received the data.</param>
+    /// <param name="controller">Client which received the data.</param>
     /// <param name="block">Block where received data are stored.</param>
-    public delegate void DataReceived(Client client, Block block);
+    public delegate void DataReceived(DataTransferController controller, Block block);
 
     /// <summary>
     /// Delegate used for data sent completition events.
     /// </summary>
     /// <param name="client">Client which data block sending was completed.</param>
-    public delegate void DataBlockSent(Client client);
+    public delegate void DataBlockSent(DataTransferController controller);
 
     /// <summary>
     /// Represents a pool which provides lightweight access to disk and network IO. 
@@ -59,12 +59,22 @@ namespace Hipiol
         /// </summary>
         private readonly EventStorage<ClientAcceptedEvent> _clientAcceptedEvents = new EventStorage<ClientAcceptedEvent>();
 
+        /// <summary>
+        /// Storage for data received events.
+        /// </summary>
+        private readonly EventStorage<DataReceivedEvent> _dataReceivedEvents = new EventStorage<DataReceivedEvent>();
+
         #endregion
 
         /// <summary>
         /// Manager thata handleas network communication.
         /// </summary>
         internal NetworkManager Network { get; private set; }
+
+        /// <summary>
+        /// Manager that handles memory blocks.
+        /// </summary>
+        internal MemoryManager Memory { get { return getMemoryManager(); } }
 
         /// <summary>
         /// Here are processed all events of the pool.
@@ -101,17 +111,6 @@ namespace Hipiol
         }
 
         public void Send(Client client, Block block)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Enables receiving for given client.
-        /// <remarks>Data receiving is not enabled for accepted clients by default.</remarks>
-        /// </summary>
-        /// <param name="client">Client which receiving will be set.</param>
-        /// <param name="timeout">Timeout, which is in milliseconds, will fire data received event with an <c>null</c> block after expiration. Zero timeout will wait for infinity. Negative timeout is an error.</param>
-        public void AllowReceive(Client client, int timeout = 0)
         {
             throw new NotImplementedException();
         }
@@ -224,16 +223,36 @@ namespace Hipiol
         /// <param name="socket"></param>
         internal void Fire_AcceptClient(Socket socket)
         {
+            if (socket == null)
+                throw new ArgumentNullException("socket");
+
             var time = DateTime.Now;
             var evt = _clientAcceptedEvents.GetEvent();
+
             evt.Socket = socket;
             evt.ArrivalTime = time;
             _iochannel.EnqueueEvent(evt);
         }
 
-        internal void Fire_RegisteredClient(Client client)
+        internal void Fire_DataReceive(ClientInternal client)
         {
-            _clientAcceptedHandler(client);
+            var evt = _dataReceivedEvents.GetEvent();
+            evt.Client = client;
+            _iochannel.EnqueueEvent(evt);
+        }
+
+        #endregion
+
+        #region Event handlers
+
+        internal void Handle_RegisteredClient(ClientController controller)
+        {
+            _clientAcceptedHandler(controller);
+        }
+
+        internal void Handle_DataReceive(DataTransferController controller)
+        {
+            _dataReceivedHandler(controller, controller.ReceivedBlock);
         }
 
         #endregion

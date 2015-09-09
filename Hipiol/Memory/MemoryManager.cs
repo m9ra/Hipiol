@@ -29,9 +29,9 @@ namespace Hipiol.Memory
         private int _constantBytesAllocated = 0;
 
         /// <summary>
-        /// How many bytes has been allocated for dynamic blocks.
+        /// How many bytes has been allocated for IO blocks.
         /// </summary>
-        private int _dynamicBytesAllocated = 0;
+        private int _ioBytesAllocated = 0;
 
         internal MemoryManager(PoolConfiguration configuration)
         {
@@ -55,6 +55,17 @@ namespace Hipiol.Memory
             _constantBytesAllocated += data.Length; 
 
             return block;
+        }
+
+        /// <summary>
+        /// Get free memory block.
+        /// </summary>
+        /// <returns>Memory block.</returns>
+        internal Block GetIOBlock()
+        {
+            //TODO blocks pool!!!
+            _ioBytesAllocated += _configuration.IOBlockSize;
+            return new Block(_configuration.IOBlockSize);
         }
     }
 }

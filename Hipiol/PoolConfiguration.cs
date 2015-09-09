@@ -37,6 +37,11 @@ namespace Hipiol
         public int AcceptBacklog = 1024;
 
         /// <summary>
+        /// Size of single IO Block.
+        /// </summary>
+        public int IOBlockSize = 1 * MB;
+
+        /// <summary>
         /// Determine whether configuration is frozen (unable to change) or not.
         /// </summary>
         private bool _isFrozen = false;

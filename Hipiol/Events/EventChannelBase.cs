@@ -71,6 +71,8 @@ namespace Hipiol.Events
                 {
                     Process(eventObject);
                 }
+
+                _pendingEvents.Clear();
             }
         }
 

@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 
 using Hipiol.Events;
+using Hipiol.Memory;
 
 namespace Hipiol.Network
 {
@@ -29,7 +30,11 @@ namespace Hipiol.Network
             _freeSlots = new Stack<int>(_clientSlots.Length);
 
             for (var i = 0; i < _clientSlots.Length; ++i)
+            {
+                var clientInternal = new ClientInternal(this,i);
+                _clientSlots[i] = clientInternal;
                 _freeSlots.Push(i);
+            }
         }
 
         internal void StartListening(int localPort)
@@ -104,27 +109,64 @@ namespace Hipiol.Network
         /// <param name="e">Description of client to accept.</param>
         private void acceptClient(SocketAsyncEventArgs e)
         {
-            _pool.Fire_AcceptClient(e.AcceptSocket);
+            switch (e.SocketError)
+            {
+                case SocketError.Success:
+                    _pool.Fire_AcceptClient(e.AcceptSocket);
+                    break;
+                default:
+                    throw new NotSupportedException("Cannot handle code " + e.SocketError);
+            }
         }
 
         #endregion
 
         #region Client registration
 
-        internal Client RegisterClient(Socket socket, DateTime arrivalTime)
+        internal ClientInternal RegisterClient(Socket socket, DateTime arrivalTime)
         {
             if (_freeSlots.Count < 0)
                 throw new NotImplementedException("Limit for count of clients has been reached");
 
+            if (socket == null)
+                throw new ArgumentNullException("socket");
+
             var freeSlot = _freeSlots.Pop();
 
             //key for slot is set when client is disposed - because of preventing operations on disposed clients
-            _clientSlots[freeSlot].Socket = socket;
-            _clientSlots[freeSlot].ArrivalTime = arrivalTime;
+            var client = _clientSlots[freeSlot];
+            client.Socket = socket;
+            client.ArrivalTime = arrivalTime;
 
-            return new Client(freeSlot, _clientSlots[freeSlot].Key);
+            return client;
         }
 
+        #endregion
+
+        #region Data receiving
+
+        internal void StartReceiving(ClientInternal client, int timeout, Block block)
+        {
+            if (client.IsReceiving)
+                throw new NotSupportedException("Cannot start receiving twice");
+
+            if (timeout != 0)
+                throw new NotImplementedException("Handle timeout by calendar");
+
+            client.IsReceiving = true;
+            client.ReceiveBuffer = block;
+            client.ReceiveEventArgs.SetBuffer(block.GetNativeBuffer(), 0, block.Size);
+            if (client.Socket.ReceiveAsync(client.ReceiveEventArgs))
+            {
+                //receive was handled synchronously
+                HandleReceive(client);
+            }
+        }
+
+        internal void HandleReceive(ClientInternal client)
+        {
+            _pool.Fire_DataReceive(client);
+        }
         #endregion
     }
 }

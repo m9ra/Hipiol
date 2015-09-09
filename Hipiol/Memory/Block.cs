@@ -14,6 +14,11 @@ namespace Hipiol.Memory
         public readonly bool IsConstant;
 
         /// <summary>
+        /// Size of current block.
+        /// </summary>
+        public int Size { get { return _data.Length; } }
+
+        /// <summary>
         /// Data storage of current <see cref="Block"/>
         /// </summary>
         private readonly byte[] _data;
@@ -26,6 +31,22 @@ namespace Hipiol.Memory
         {
             IsConstant = true;
             _data = data.ToArray();
+        }
+
+        internal Block(int size)
+        {
+            IsConstant = false;
+            _data = new byte[size];
+        }
+
+        /// <summary>
+        /// Gets buffer of current block. It provides fast access
+        /// to the buffer, but has to be used carefully!!!
+        /// </summary>
+        /// <returns>The internal buffer.</returns>
+        internal byte[] GetNativeBuffer()
+        {
+            return _data;
         }
     }
 }

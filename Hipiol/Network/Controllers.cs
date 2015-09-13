@@ -68,6 +68,15 @@ namespace Hipiol.Network
         {
             ClientInternal = client;
         }
+
+        /// <summary>
+        /// Set given tag to controlled client.
+        /// </summary>
+        /// <param name="tag">The tag that is set.</param>
+        public void SetTag(object tag)
+        {
+            ClientInternal.Client.Tag = tag;
+        }
     }
 
     /// <summary>

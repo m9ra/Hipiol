@@ -12,6 +12,12 @@ namespace Hipiol.PerformanceTest
     {
         private TestServer _server;
 
+        private readonly List<TestClient> _testClients = new List<TestClient>();
+
+        internal int PendingBytes { get { return SentBytesCount - _server.ReceivedBytesCount; } }
+
+        internal int SentBytesCount { get { return _testClients.Sum(c => c.TotalSentBytesCount); } }
+
         internal TestServer StartServer(int maxParallelClientCount)
         {
             if (_server != null)
@@ -22,9 +28,10 @@ namespace Hipiol.PerformanceTest
             return _server;
         }
 
-        internal SendableData GetRandomData()
+        internal SendableData GetRandomData(int size)
         {
-            return new SendableData();
+            var randomData = new byte[size];
+            return new SendableData(randomData);
         }
 
         internal TestClient[] GetConnectedClients(int clientCount)
@@ -38,6 +45,17 @@ namespace Hipiol.PerformanceTest
             return clients;
         }
 
+        internal TestClient[] GetIdentifiedConnectedClients(int clientCount)
+        {
+            var clients = GetClients(clientCount);
+            for (var i = 0; i < clients.Length; ++i)
+            {
+                clients[i].ConenctWithIdentification();
+            }
+
+            return clients;
+        }
+
         internal TestClient[] GetClients(int clientCount)
         {
             if (_server == null)
@@ -46,10 +64,35 @@ namespace Hipiol.PerformanceTest
             var clients = new List<TestClient>();
             for (var i = 0; i < clientCount; ++i)
             {
-                clients.Add(new TestClient(_server));
+                var client = new TestClient(_server);
+                _testClients.Add(client);
+                clients.Add(client);
             }
 
             return clients.ToArray();
+        }
+
+        internal IEnumerable<int> GetTransferTimes()
+        {
+            var transferTimes = new List<int>();
+            foreach (var client in _testClients)
+            {
+                if (!client.IsIdentified)
+                    throw new NotSupportedException("Cannot get transfer time for non-identified client.");
+
+                for (var i = 0; i < client.SendCount; ++i)
+                {
+                    var sendTime = client.GetSendTime(i);
+                    var sentBytes = client.SentBytesCount(i);
+
+                    var receiveTime = client.ServerClient.GetReceiveTime(i);
+
+                    var transferTime = receiveTime - sendTime;
+                    transferTimes.Add((int)transferTime.TotalMilliseconds);
+                }
+            }
+
+            return transferTimes;
         }
     }
 }

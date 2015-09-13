@@ -16,7 +16,7 @@ namespace Hipiol.Memory
         /// <summary>
         /// Index of constant blocks.
         /// </summary>
-        private readonly List<Block> _constantBlocks=new List<Block>();
+        private readonly List<Block> _constantBlocks = new List<Block>();
 
         /// <summary>
         /// Index of dynamic blocks.
@@ -47,12 +47,12 @@ namespace Hipiol.Memory
         {
             if (_constantBytesAllocated + data.Length > _configuration.ConstantMemoryLimit)
                 throw new NotSupportedException("Cannot allocate more data due to configuration limit for constant blocks");
-            
+
             var block = new Block(data);
             _constantBlocks.Add(block);
 
             //register allocated memory
-            _constantBytesAllocated += data.Length; 
+            _constantBytesAllocated += data.Length;
 
             return block;
         }
@@ -64,7 +64,10 @@ namespace Hipiol.Memory
         internal Block GetIOBlock()
         {
             //TODO blocks pool!!!
+            if (_ioBytesAllocated + _configuration.IOBlockSize > _configuration.IOMemoryLimit)
+                throw new NotSupportedException("Cannot allocate more IO blocks dure to configuration limit for IO blocks");
             _ioBytesAllocated += _configuration.IOBlockSize;
+
             return new Block(_configuration.IOBlockSize);
         }
     }

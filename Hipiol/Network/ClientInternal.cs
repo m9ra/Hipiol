@@ -26,7 +26,7 @@ namespace Hipiol.Network
 
         internal Block ReceiveBuffer;
 
-        internal bool IsReceiving;
+        internal bool AllowReceiving;
 
         internal ClientInternal(NetworkManager manager, int clientIndex)
         {

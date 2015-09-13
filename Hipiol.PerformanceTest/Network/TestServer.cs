@@ -12,24 +12,34 @@ namespace Hipiol.PerformanceTest.Network
 {
     class TestServer
     {
+        internal static readonly int MaxClientCount = 2000;
+
         internal readonly int ServerPort = 12345;
 
         private readonly IOPool _pool;
 
-        private readonly HashSet<Client> _clients = new HashSet<Client>();
+        private readonly ServerClient[] _clients = new ServerClient[MaxClientCount];
 
-        private readonly List<Block> _data;
+        private volatile int _nextClient = 0;
 
-        private readonly Dictionary<Client, int> _clientState = new Dictionary<Client, int>();
+        internal volatile int ReceivedBytesCount;
+
+        internal IEnumerable<ServerClient> Clients { get { return _clients.Take(_nextClient); } }
+
+        internal int ClientCount { get { return _nextClient; } }
 
         internal TestServer(int maxParallelClientCount)
         {
             _pool = new IOPool();
-            _data = prepareData(_pool).ToList();
 
             _pool.SetClientHandlers(_clientAccepted, _clientDisconnected);
             _pool.SetDataHandlers(_dataReceived, _dataBlockSent);
             _pool.StartListening(ServerPort);
+
+            for (var i = 0; i < _clients.Length; ++i)
+            {
+                _clients[i] = new ServerClient();
+            }
         }
 
         private IEnumerable<Block> prepareData(IOPool pool)
@@ -58,26 +68,25 @@ namespace Hipiol.PerformanceTest.Network
                 //nothing to do
                 return;
 
-            throw new NotImplementedException();
+            ReceivedBytesCount += controller.ReceivedBytes;
+
+            var client = controller.Client.Tag as ServerClient;
+            client.ReportData(controller.ReceivedBytes);
         }
 
         private void _dataBlockSent(DataTransferController controller)
         {
-            var state = _clientState[controller.Client];
-            controller.Send(_data[state]);
-
-            var newstate = state + 1;
-            if (newstate >= _data.Count)
-                controller.Disconnect();
-
-            _clientState[controller.Client] = newstate;
+            throw new NotImplementedException();
         }
 
         private void _clientAccepted(ClientController controller)
         {
+            var serverClient = _clients[_nextClient];
+            serverClient.ReportAccept();
+
             var client = controller.Client;
-            _clients.Add(client);
-            _clientState.Add(client, 0);
+            controller.SetTag(serverClient);
+            _nextClient += 1;
 
             //we will allow receiving of data for the client.
             controller.AllowReceive(0);
@@ -85,8 +94,13 @@ namespace Hipiol.PerformanceTest.Network
 
         private void _clientDisconnected(ClientController controller)
         {
-            _clients.Remove(controller.Client);
-            _clientState.Remove(controller.Client);
+            var serverClient = controller.Client.Tag as ServerClient;
+            serverClient.ReportDisconnection();
+        }
+
+        internal ServerClient GetClient(int clientIndex)
+        {
+            return _clients[clientIndex];
         }
     }
 }

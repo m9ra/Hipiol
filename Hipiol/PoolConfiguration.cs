@@ -24,7 +24,7 @@ namespace Hipiol
         /// <summary>
         /// Allocation limit for dynamic memory blocks.
         /// </summary>
-        public readonly int DynamicMemoryLimit = 10 * MB;
+        public readonly int IOMemoryLimit = 10 * MB;
 
         /// <summary>
         /// Maximum count of network clients that can be handled in parallel.
@@ -39,7 +39,7 @@ namespace Hipiol
         /// <summary>
         /// Size of single IO Block.
         /// </summary>
-        public int IOBlockSize = 1 * MB;
+        public int IOBlockSize = 1024;//1 * MB;
 
         /// <summary>
         /// Determine whether configuration is frozen (unable to change) or not.

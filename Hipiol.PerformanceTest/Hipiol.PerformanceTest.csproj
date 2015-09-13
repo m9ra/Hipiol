@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Network\SendableData.cs" />
     <Compile Include="Network\SendInfo.cs" />
+    <Compile Include="Network\ServerClient.cs" />
     <Compile Include="Network\TestClient.cs" />
     <Compile Include="Network\TestServer.cs" />
     <Compile Include="Program.cs" />

@@ -147,16 +147,29 @@ namespace Hipiol.Network
 
         internal void StartReceiving(ClientInternal client, int timeout, Block block)
         {
-            if (client.IsReceiving)
+            if (client.AllowReceiving)
                 throw new NotSupportedException("Cannot start receiving twice");
 
             if (timeout != 0)
                 throw new NotImplementedException("Handle timeout by calendar");
 
-            client.IsReceiving = true;
+            client.AllowReceiving = true;
             client.ReceiveBuffer = block;
             client.ReceiveEventArgs.SetBuffer(block.GetNativeBuffer(), 0, block.Size);
-            if (client.Socket.ReceiveAsync(client.ReceiveEventArgs))
+
+            RequestReceiving(client);
+        }
+
+        /// <summary>
+        /// Expect that <see cref="ClientInternal.ReceiveBuffer"/> and <see cref="ClientInternal.ReceiveEventArgs"/> buffers are properly set.
+        /// </summary>
+        /// <param name="client">Client which receiving is requested.</param>
+        internal void RequestReceiving(ClientInternal client)
+        {
+            if (!client.AllowReceiving)
+                throw new NotSupportedException("Cannot continue receiving, when client doesn't allow receiving");
+
+            if (!client.Socket.ReceiveAsync(client.ReceiveEventArgs))
             {
                 //receive was handled synchronously
                 HandleReceive(client);

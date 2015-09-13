@@ -63,6 +63,9 @@ namespace Hipiol
 
             _controller.SetClient(client);
             _pool.Handle_DataReceive(_controller);
+            if (client.AllowReceiving)
+                _pool.Network.RequestReceiving(client);
+
             _controller.SetClient(null);
         }
     }

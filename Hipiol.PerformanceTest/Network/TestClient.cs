@@ -27,6 +27,8 @@ namespace Hipiol.PerformanceTest.Network
 
         internal int TotalSentBytesCount { get; private set; }
 
+        internal DateTime ConnectionTime { get; private set; }
+
         internal ServerClient ServerClient { get; private set; }
 
         internal TestClient(TestServer server)
@@ -37,8 +39,9 @@ namespace Hipiol.PerformanceTest.Network
 
         internal void Connect()
         {
-            _tcpClient.Connect(IPAddress.Loopback, _server.ServerPort);
             _tcpClient.NoDelay = true;
+            ConnectionTime = DateTime.Now;
+            _tcpClient.Connect(IPAddress.Loopback, _server.ServerPort);
         }
 
         internal void ConenctWithIdentification()
@@ -47,7 +50,8 @@ namespace Hipiol.PerformanceTest.Network
             Connect();
             while (_server.ClientCount != originalClientCount + 1)
             {
-                Thread.Sleep(1);
+                //Spin lock waiting - we need maximal responsivenes
+                //Waiting times are short -> overhead is not significant
             }
 
             ServerClient = _server.GetClient(originalClientCount);

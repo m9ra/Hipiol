@@ -9,6 +9,7 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 
+using Hipiol.PerformanceTest.Stats;
 using Hipiol.PerformanceTest.Network;
 
 namespace Hipiol.PerformanceTest
@@ -35,45 +36,63 @@ namespace Hipiol.PerformanceTest
 
         static void SkippedTransferTest()
         {
-            var clientCount = 1000;
-            var iterationCount = 100;
+            var clientCount = 10000;
+            var iterationCount = 20000;
 
             var expectedSendCount = clientCount * iterationCount;
 
 
             var utils = new TestUtils();
             utils.StartServer(clientCount);
-            var data = utils.GetRandomData(1024);
+            var data = utils.GetRandomData(2048);
 
+            Console.WriteLine("Connecting clients");
             var clients = utils.GetIdentifiedConnectedClients(clientCount);
 
             var rnd = new Random(1);
 
+            Console.WriteLine("Starting test");
             var startTime = DateTime.Now;
-            var sendInfos = new SendInfo[iterationCount];
+
             for (var testIndex = 0; testIndex < iterationCount; ++testIndex)
             {
                 var clientIndex = rnd.Next(clients.Length);
                 var client = clients[clientIndex];
-                var sendInf = client.SendData(data);
-                sendInfos[testIndex] = sendInf;
+                client.SendData(data);
             }
 
+            Console.WriteLine(" waiting");
             while (utils.PendingBytes > 0)
             {
                 Thread.Sleep(1);
             }
-            var endTime = DateTime.Now;
 
-            var times = utils.GetTransferTimes();
-            foreach (var time in times)
-            {
-                Console.WriteLine(time + "ms");
-            }
+            var endTime = DateTime.Now;
+            Console.WriteLine("End\n");
+
+
+            var connectionTimes = utils.GetConnectionTimes();
+            var transferTimes = utils.GetTransferTimes();
+
+            PrintPercentage("Transfer times",transferTimes);
+            PrintPercentage("Connection times", connectionTimes);
 
             var duration = (endTime - startTime).TotalMilliseconds;
 
             Console.WriteLine("Test duration {0:0.000}", duration);
+        }
+
+        private static void PrintPercentage(string caption, IEnumerable<double> times)
+        {
+            Console.WriteLine(caption);
+            var percentage = new Percentage(times, Percentage.StandardPercentage);
+            for (var i = 0; i < percentage.PercentCount; ++i)
+            {
+                var time = percentage.GetThreshold(i);
+                var count = percentage.GetCount(i);
+                var percent = percentage.GetPercent(i);
+                Console.WriteLine("\t{0,3}% {1,5}\t{2:0.000}ms", percent * 100, count, time);
+            }
         }
     }
 }

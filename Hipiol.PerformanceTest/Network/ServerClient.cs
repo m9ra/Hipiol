@@ -44,7 +44,7 @@ namespace Hipiol.PerformanceTest.Network
         {
             for (var i = 0; i < _arrivalsCount; ++i)
             {
-                if (ByteAmounts[i] >= _bytesReceived)
+                if (ByteAmounts[i] >= bytes)
                     return DataArrivals[i];
             }
 

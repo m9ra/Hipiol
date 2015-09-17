@@ -12,7 +12,7 @@ namespace Hipiol.PerformanceTest.Network
 {
     class TestServer
     {
-        internal static readonly int MaxClientCount = 2000;
+        internal static readonly int MaxClientCount = 10000;
 
         internal readonly int ServerPort = 12345;
 

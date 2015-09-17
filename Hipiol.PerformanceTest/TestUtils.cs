@@ -72,9 +72,9 @@ namespace Hipiol.PerformanceTest
             return clients.ToArray();
         }
 
-        internal IEnumerable<int> GetTransferTimes()
+        internal IEnumerable<double> GetTransferTimes()
         {
-            var transferTimes = new List<int>();
+            var transferTimes = new List<double>();
             foreach (var client in _testClients)
             {
                 if (!client.IsIdentified)
@@ -85,14 +85,29 @@ namespace Hipiol.PerformanceTest
                     var sendTime = client.GetSendTime(i);
                     var sentBytes = client.SentBytesCount(i);
 
-                    var receiveTime = client.ServerClient.GetReceiveTime(i);
+                    var receiveTime = client.ServerClient.GetReceiveTime(sentBytes);
 
                     var transferTime = receiveTime - sendTime;
-                    transferTimes.Add((int)transferTime.TotalMilliseconds);
+                    transferTimes.Add(transferTime.TotalMilliseconds);
                 }
             }
 
             return transferTimes;
+        }
+
+        internal IEnumerable<double> GetConnectionTimes()
+        {
+            var connectionTimes = new List<double>();
+            foreach (var client in _testClients)
+            {
+                if (!client.IsIdentified)
+                    throw new NotSupportedException("Cannot get transfer time for non-identified client.");
+
+                var connectionTime = client.ServerClient.AcceptTime - client.ConnectionTime;
+                connectionTimes.Add(connectionTime.TotalMilliseconds);
+            }
+
+            return connectionTimes;
         }
     }
 }

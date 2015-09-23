@@ -24,8 +24,11 @@ namespace Hipiol.PerformanceTest.Network
         {
             _bytesReceived += bytes;
 
-            DataArrivals[_arrivalsCount] = DateTime.Now;
-            ByteAmounts[_arrivalsCount] = _bytesReceived;
+            if (_arrivalsCount < DataArrivals.Length)
+            {
+                DataArrivals[_arrivalsCount] = DateTime.Now;
+                ByteAmounts[_arrivalsCount] = _bytesReceived;
+            }
 
             _arrivalsCount += 1;
         }
@@ -40,9 +43,11 @@ namespace Hipiol.PerformanceTest.Network
             AcceptTime = DateTime.Now;
         }
 
-        internal DateTime GetReceiveTime(int bytes)
+        internal DateTime GetReceiveTime(int bytes)        
         {
-            for (var i = 0; i < _arrivalsCount; ++i)
+
+            var count = Math.Min(_arrivalsCount, ByteAmounts.Length);
+            for (var i = 0; i < count; ++i)
             {
                 if (ByteAmounts[i] >= bytes)
                     return DataArrivals[i];

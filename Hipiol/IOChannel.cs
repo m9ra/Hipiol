@@ -55,7 +55,7 @@ namespace Hipiol
         /// <inheritdoc/>
         internal override void Visit(DataReceivedEvent e)
         {
-            var client = e.Client;
+            var client = e.ClientInternal;
 
             //is called when client received data.
             if (client.ReceiveEventArgs.SocketError != SocketError.Success)

@@ -18,33 +18,20 @@ namespace Hipiol.PerformanceTest
     {
         static void Main(string[] args)
         {
-            /*      var server = new TestServer();
-
-                  var client = new TcpClient();
-                  client.Connect(IPAddress.Loopback, server.ServerPort);
-
-                  var data = new byte[10000];
-                  for (var i = 0; i < data.Length; ++i)
-                  {
-                      data[i] = (byte)i;
-                  }
-                  client.Client.Send(data);
-                  client.Client.Receive(new byte[1000]);
-            */
-            SkippedTransferTest();
+            var ioDelay_95 = TestReceiveDelay_95();
+            var avgReceiveSpeed = TestAvgReceiveSpeed();
         }
 
-        static void SkippedTransferTest()
+        #region Benchmark implementations
+
+        static double TestReceiveDelay_95()
         {
             var clientCount = 10000;
             var iterationCount = 20000;
 
-            var expectedSendCount = clientCount * iterationCount;
-
-
             var utils = new TestUtils();
             utils.StartServer(clientCount);
-            var data = utils.GetRandomData(2048);
+            var data = utils.GetRandomData(1024);
 
             Console.WriteLine("Connecting clients");
             var clients = utils.GetIdentifiedConnectedClients(clientCount);
@@ -54,6 +41,8 @@ namespace Hipiol.PerformanceTest
             Console.WriteLine("Starting test");
             var startTime = DateTime.Now;
 
+            //send small chunks to random clients
+            //(can discover troubles in bad handling of large amounts of clients)
             for (var testIndex = 0; testIndex < iterationCount; ++testIndex)
             {
                 var clientIndex = rnd.Next(clients.Length);
@@ -62,11 +51,7 @@ namespace Hipiol.PerformanceTest
             }
 
             Console.WriteLine(" waiting");
-            while (utils.PendingBytes > 0)
-            {
-                Thread.Sleep(1);
-            }
-
+            utils.WaitOnPendingData();
             var endTime = DateTime.Now;
             Console.WriteLine("End\n");
 
@@ -74,15 +59,23 @@ namespace Hipiol.PerformanceTest
             var connectionTimes = utils.GetConnectionTimes();
             var transferTimes = utils.GetTransferTimes();
 
-            PrintPercentage("Transfer times",transferTimes);
+            var transferPercentage = PrintPercentage("Transfer times", transferTimes);
             PrintPercentage("Connection times", connectionTimes);
 
             var duration = (endTime - startTime).TotalMilliseconds;
 
             Console.WriteLine("Test duration {0:0.000}", duration);
+
+            return transferPercentage.GetThreshold(0.95);
         }
 
-        private static void PrintPercentage(string caption, IEnumerable<double> times)
+        static double TestAvgReceiveSpeed()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        private static Percentage PrintPercentage(string caption, IEnumerable<double> times)
         {
             Console.WriteLine(caption);
             var percentage = new Percentage(times, Percentage.StandardPercentage);
@@ -93,6 +86,8 @@ namespace Hipiol.PerformanceTest
                 var percent = percentage.GetPercent(i);
                 Console.WriteLine("\t{0,3}% {1,5}\t{2:0.000}ms", percent * 100, count, time);
             }
+
+            return percentage;
         }
     }
 }

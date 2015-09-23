@@ -70,7 +70,7 @@ namespace Hipiol.PerformanceTest.Network
 
             ReceivedBytesCount += controller.ReceivedBytes;
 
-            var client = controller.Client.Tag as ServerClient;
+            var client = controller.ClientTag as ServerClient;
             client.ReportData(controller.ReceivedBytes);
         }
 
@@ -94,7 +94,7 @@ namespace Hipiol.PerformanceTest.Network
 
         private void _clientDisconnected(ClientController controller)
         {
-            var serverClient = controller.Client.Tag as ServerClient;
+            var serverClient = controller.ClientTag as ServerClient;
             serverClient.ReportDisconnection();
         }
 

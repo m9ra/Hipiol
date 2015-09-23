@@ -63,6 +63,11 @@ namespace Hipiol
         /// Storage for data received events.
         /// </summary>
         private readonly EventStorage<DataReceivedEvent> _dataReceivedEvents = new EventStorage<DataReceivedEvent>();
+        
+        /// <summary>
+        /// Storage for data send events.
+        /// </summary>
+        private readonly EventStorage<DataSendEvent> _dataSendEvents = new EventStorage<DataSendEvent>();
 
         #endregion
 
@@ -91,12 +96,24 @@ namespace Hipiol
         /// </summary>
         private MemoryManager _memory;
 
+        /// <summary>
+        /// Handler for accepted clients
+        /// </summary>
         private ClientAccepted _clientAcceptedHandler;
 
+        /// <summary>
+        /// Handler for disconnected clients
+        /// </summary>
         private ClientDisconnected _clientDisconnectedHandler;
 
+        /// <summary>
+        /// Handler for received data.
+        /// </summary>
         private DataReceived _dataReceivedHandler;
 
+        /// <summary>
+        /// Handler called after successful completition of data block sending is reporeted by this handler.
+        /// </summary>
         private DataBlockSent _dataBlockSentHandler;
 
         public IOPool()
@@ -110,9 +127,14 @@ namespace Hipiol
             _eventThread.Start();
         }
 
+        /// <summary>
+        /// Sends given block to given client.
+        /// </summary>
+        /// <param name="client">Client whom the data will be sent.</param>
+        /// <param name="block">Block that will be sent.</param>
         public void Send(Client client, Block block)
         {
-            throw new NotImplementedException();
+            Fire_Send(client, block);
         }
 
         /// <summary>
@@ -234,22 +256,46 @@ namespace Hipiol
             _iochannel.EnqueueEvent(evt);
         }
 
-        internal void Fire_DataReceive(ClientInternal client)
+        /// <summary>
+        /// Fires event that handles client receiving.
+        /// </summary>
+        /// <param name="clientInternal">Client which receiving is handled.</param>
+        internal void Fire_DataReceive(ClientInternal clientInternal)
         {
             var evt = _dataReceivedEvents.GetEvent();
-            evt.Client = client;
+            evt.ClientInternal = clientInternal;
             _iochannel.EnqueueEvent(evt);
         }
 
+        /// <summary>
+        /// Fires event that handles client sending.
+        /// </summary>
+        /// <param name="client">Client whom the data will be sent.</param>
+        /// <param name="block">The data to send.</param>
+        private void Fire_Send(Client client, Block block)
+        {
+            var evt = _dataSendEvents.GetEvent();
+            evt.Client = client;
+            evt.Block = block;
+            _iochannel.EnqueueEvent(evt);
+        }
         #endregion
 
         #region Event handlers
 
+        /// <summary>
+        /// Handle client that has been registered.
+        /// </summary>
+        /// <param name="controller">Controller of registered client.</param>
         internal void Handle_RegisteredClient(ClientController controller)
         {
             _clientAcceptedHandler(controller);
         }
 
+        /// <summary>
+        /// Handle client that has received data.
+        /// </summary>
+        /// <param name="controller">Controller of the client.</param>
         internal void Handle_DataReceive(DataTransferController controller)
         {
             _dataReceivedHandler(controller, controller.ReceivedBlock);

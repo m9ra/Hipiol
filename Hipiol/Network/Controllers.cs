@@ -28,6 +28,11 @@ namespace Hipiol.Network
         /// </summary>
         public Client Client { get { return ClientInternal.Client; } }
 
+        /// <summary>
+        /// Tag assigned to controlled client.
+        /// </summary>
+        public object ClientTag { get { return ClientInternal.Tag; } }
+
         internal ClientController(IOPool pool)
         {
             Pool = pool;
@@ -75,7 +80,7 @@ namespace Hipiol.Network
         /// <param name="tag">The tag that is set.</param>
         public void SetTag(object tag)
         {
-            ClientInternal.Client.Tag = tag;
+            ClientInternal.Tag = tag;
         }
     }
 

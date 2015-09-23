@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Threading;
+
 using Hipiol.PerformanceTest.Network;
 
 namespace Hipiol.PerformanceTest
@@ -93,6 +95,14 @@ namespace Hipiol.PerformanceTest
             }
 
             return transferTimes;
+        }
+
+        internal void WaitOnPendingData()
+        {
+            while (PendingBytes > 0)
+            {
+                Thread.Sleep(1);
+            }
         }
 
         internal IEnumerable<double> GetConnectionTimes()

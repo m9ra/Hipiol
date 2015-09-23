@@ -51,11 +51,7 @@ namespace Hipiol.PerformanceTest.Stats
         /// <returns>Count of values.</returns>
         internal int GetCount(int percentId)
         {
-            var threshold = GetThreshold(percentId);
-            var index = 0;
-            while (index<_values.Length && _values[index] <= threshold )
-                ++index;
-
+            var index = getPercentIndex(percentId);
             return index;
         }
 
@@ -66,15 +62,19 @@ namespace Hipiol.PerformanceTest.Stats
         /// <returns>The threshold.</returns>
         internal double GetThreshold(int percentId)
         {
-            var max = _values.Last();
+            var index = getPercentIndex(percentId);
+            return _values[index];
+        }
 
-            if (percentId >= _percents.Length)
-                return max;
-
-            var percent = _percents[percentId];
-            var threshold = max * percent;
-
-            return threshold;
+        /// <summary>
+        /// Gets threshold for given percentage id
+        /// </summary>
+        /// <param name="percentId">The percentage id.</param>
+        /// <returns>The threshold.</returns>
+        internal double GetThreshold(double percent)
+        {
+            var index = getPercentIndex(percent);
+            return _values[index];
         }
 
         /// <summary>
@@ -88,6 +88,27 @@ namespace Hipiol.PerformanceTest.Stats
                 return 1.0;
 
             return _percents[percentId];
+        }
+
+        /// <summary>
+        /// Get value index for given percentId.
+        /// </summary>
+        /// <param name="percentId">The percentage id.</param>
+        /// <returns>The index.</returns>
+        private int getPercentIndex(int percentId)
+        {
+            var percent = GetPercent(percentId);
+            return (int)((_values.Length - 1) * percent);
+        }
+
+        /// <summary>
+        /// Get value index for given percentId.
+        /// </summary>
+        /// <param name="percentId">The percentage id.</param>
+        /// <returns>The index.</returns>
+        private int getPercentIndex(double percent)
+        {
+            return (int)((_values.Length - 1) * percent);
         }
     }
 }

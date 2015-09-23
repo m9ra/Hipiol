@@ -5,26 +5,32 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Hipiol.Events;
+using Hipiol.Memory;
 
 namespace Hipiol.Network
 {
-    class DataReceivedEvent : EventBase
+    class DataSendEvent : EventBase
     {
         /// <summary>
-        /// Client which received data.
+        /// Client which is sending data.
         /// </summary>
-        internal ClientInternal ClientInternal;
+        internal Client Client;
+
+        /// <summary>
+        /// Block with data to sent.
+        /// </summary>
+        internal Block Block;
 
         /// <inheritdoc/>
         protected override void recycle()
         {
-            ClientInternal = null;
+            Block = null;
         }
 
         /// <inheritdoc/>
         internal override void Accept(EventVisitorBase visitor)
         {
-            visitor.Visit(this);
+            throw new NotImplementedException();
         }
     }
 }

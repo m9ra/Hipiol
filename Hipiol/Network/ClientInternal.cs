@@ -16,16 +16,44 @@ namespace Hipiol.Network
     /// </summary>
     class ClientInternal
     {
-        internal Socket Socket;
-
-        internal DateTime ArrivalTime;
-
-        internal Client Client;
-
+        /// <summary>
+        /// Event args object that is used for receiving events.
+        /// </summary>
         internal readonly SocketAsyncEventArgs ReceiveEventArgs = new SocketAsyncEventArgs();
 
+        /// <summary>
+        /// Event args object that is used for sending events.
+        /// </summary>
+        internal readonly SocketAsyncEventArgs SendEventArgs = new SocketAsyncEventArgs();
+
+        /// <summary>
+        /// Actual buffer for receiving.
+        /// </summary>
         internal Block ReceiveBuffer;
 
+        /// <summary>
+        /// Tag assigned to currrent client.
+        /// </summary>
+        internal object Tag;
+
+        /// <summary>
+        /// Current client socket.
+        /// </summary>
+        internal Socket Socket;
+
+        /// <summary>
+        /// Time, when client has been firstly seen.
+        /// </summary>
+        internal DateTime ArrivalTime;
+
+        /// <summary>
+        /// Client identification.
+        /// </summary>
+        internal Client Client;
+
+        /// <summary>
+        /// Determine whether receiving is allowed for current client.
+        /// </summary>
         internal bool AllowReceiving;
 
         internal ClientInternal(NetworkManager manager, int clientIndex)

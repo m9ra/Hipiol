@@ -17,10 +17,19 @@ namespace Hipiol.Network
     /// </summary>
     class NetworkManager
     {
+        /// <summary>
+        /// Pool assigned to current manager.
+        /// </summary>
         private readonly IOPool _pool;
 
+        /// <summary>
+        /// Slots where internal representations of clients are stored.
+        /// </summary>
         private readonly ClientInternal[] _clientSlots;
 
+        /// <summary>
+        /// Stack of free slots. Stack is used to be more cache friendly.
+        /// </summary>
         private readonly Stack<int> _freeSlots;
 
         internal NetworkManager(IOPool pool)
@@ -37,6 +46,10 @@ namespace Hipiol.Network
             }
         }
 
+        /// <summary>
+        /// Starts listening on given port.
+        /// </summary>
+        /// <param name="localPort">Port for listening.</param>
         internal void StartListening(int localPort)
         {
             // create the socket which listens for incoming connections
@@ -123,6 +136,12 @@ namespace Hipiol.Network
 
         #region Client registration
 
+        /// <summary>
+        /// Register new client, which is listening on given socket.
+        /// </summary>
+        /// <param name="socket">Socket where new client is connected.</param>
+        /// <param name="arrivalTime">Time when client has been seen firstly.</param>
+        /// <returns>Corresponding <see cref="ClientInternal"/> internal representation of the client.</returns>
         internal ClientInternal RegisterClient(Socket socket, DateTime arrivalTime)
         {
             if (_freeSlots.Count < 0)
@@ -145,6 +164,13 @@ namespace Hipiol.Network
 
         #region Data receiving
 
+        /// <summary>
+        /// Starts receiving for given client and block. If timeout is specified, receiving will
+        /// stop after that time.
+        /// </summary>
+        /// <param name="client">Client which receiving is set.</param>
+        /// <param name="timeout">Timeout for receiving.</param>
+        /// <param name="block">Block where received data will be stored.</param>
         internal void StartReceiving(ClientInternal client, int timeout, Block block)
         {
             if (client.AllowReceiving)
@@ -172,13 +198,8 @@ namespace Hipiol.Network
             if (!client.Socket.ReceiveAsync(client.ReceiveEventArgs))
             {
                 //receive was handled synchronously
-                HandleReceive(client);
+                _pool.Fire_DataReceive(client);
             }
-        }
-
-        internal void HandleReceive(ClientInternal client)
-        {
-            _pool.Fire_DataReceive(client);
         }
         #endregion
     }

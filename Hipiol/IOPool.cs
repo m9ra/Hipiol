@@ -63,11 +63,16 @@ namespace Hipiol
         /// Storage for data received events.
         /// </summary>
         private readonly EventStorage<DataReceivedEvent> _dataReceivedEvents = new EventStorage<DataReceivedEvent>();
-        
+
         /// <summary>
         /// Storage for data send events.
         /// </summary>
         private readonly EventStorage<DataSendEvent> _dataSendEvents = new EventStorage<DataSendEvent>();
+
+        /// <summary>
+        /// Storage for data sent events.
+        /// </summary>
+        private readonly EventStorage<DataSentEvent> _dataSentEvents = new EventStorage<DataSentEvent>();
 
         #endregion
 
@@ -132,9 +137,11 @@ namespace Hipiol
         /// </summary>
         /// <param name="client">Client whom the data will be sent.</param>
         /// <param name="block">Block that will be sent.</param>
-        public void Send(Client client, Block block)
+        /// <param name="dataOffset">Offset where data in block starts.</param>
+        /// <param name="dataSize">Size of data to send.</param>
+        public void Send(Client client, Block block, int dataOffset, int dataSize)
         {
-            Fire_Send(client, block);
+            Fire_Send(client, block, dataOffset, dataSize);
         }
 
         /// <summary>
@@ -268,15 +275,30 @@ namespace Hipiol
         }
 
         /// <summary>
+        /// Fires event that handles data sent event.
+        /// </summary>
+        /// <param name="clientInternal">Client which data was sent.</param>
+        internal void Fire_DataSent(ClientInternal clientInternal)
+        {
+            var evt = _dataSentEvents.GetEvent();
+            evt.ClientInternal = clientInternal;
+            _iochannel.EnqueueEvent(evt);
+        }
+
+        /// <summary>
         /// Fires event that handles client sending.
         /// </summary>
         /// <param name="client">Client whom the data will be sent.</param>
         /// <param name="block">The data to send.</param>
-        private void Fire_Send(Client client, Block block)
+        /// <param name="dataOffset">Offset where data in block starts.</param>
+        /// <param name="dataSize">Size of data to send.</param>
+        private void Fire_Send(Client client, Block block, int dataOffset, int dataSize)
         {
             var evt = _dataSendEvents.GetEvent();
             evt.Client = client;
             evt.Block = block;
+            evt.DataOffset = dataOffset;
+            evt.DataSize = dataSize;
             _iochannel.EnqueueEvent(evt);
         }
         #endregion

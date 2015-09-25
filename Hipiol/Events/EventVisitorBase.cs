@@ -13,5 +13,9 @@ namespace Hipiol.Events
         abstract internal void Visit(ClientAcceptedEvent e);
 
         abstract internal void Visit(DataReceivedEvent e);
+
+        abstract internal void Visit(DataSendEvent e);
+
+        abstract internal void Visit(DataSentEvent e);
     }
 }

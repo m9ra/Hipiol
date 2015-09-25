@@ -69,6 +69,11 @@ namespace Hipiol.PerformanceTest
             return transferPercentage.GetThreshold(0.95);
         }
 
+        static double TestSendDelay()
+        {
+            throw new NotImplementedException();
+        }
+
         static double TestAvgReceiveSpeed()
         {
             throw new NotImplementedException();

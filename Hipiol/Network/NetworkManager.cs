@@ -40,7 +40,7 @@ namespace Hipiol.Network
 
             for (var i = 0; i < _clientSlots.Length; ++i)
             {
-                var clientInternal = new ClientInternal(this,i);
+                var clientInternal = new ClientInternal(this, i);
                 _clientSlots[i] = clientInternal;
                 _freeSlots.Push(i);
             }
@@ -56,6 +56,21 @@ namespace Hipiol.Network
             var localEndPoint = new IPEndPoint(IPAddress.Any, localPort);
 
             startAcceptingClients(localEndPoint);
+        }
+
+        /// <summary>
+        /// Gets <see cref="ClientInternal"/> that is identified by given client.
+        /// </summary>
+        /// <param name="client">Client which identifiest the <see cref="ClientInternal"/></param>
+        /// <returns>The <see cref="ClientInternal"/>.</returns>
+        internal ClientInternal GetClientInternal(Client client)
+        {
+            var clientInternal = _clientSlots[client.Index];
+            if (clientInternal.Client.Key != client.Key)
+                //client is not available yet
+                return null;
+
+            return clientInternal;
         }
 
         #region Client accepting
@@ -198,9 +213,56 @@ namespace Hipiol.Network
             if (!client.Socket.ReceiveAsync(client.ReceiveEventArgs))
             {
                 //receive was handled synchronously
-                _pool.Fire_DataReceive(client);
+                Handle_Receive(client);
             }
         }
+
+        /// <summary>
+        /// Event args handler for data receiving.
+        /// </summary>
+        /// <param name="client">Client which received data.</param>
+        internal void Handle_Receive(ClientInternal client)
+        {
+            _pool.Fire_DataReceive(client);
+        }
+
+        #endregion
+
+        #region Data sending
+
+        /// <summary>
+        /// Sends given block to given client.
+        /// </summary>
+        /// <param name="client">Client whom the data will be sent.</param>
+        /// <param name="block">Block that will be sent.</param>
+        /// <param name="dataOffset">Offset where data in block starts.</param>
+        /// <param name="dataSize">Size of data to send.</param>
+        internal void Send(ClientInternal client, Block blockToSend, int dataOffset, int dataSize)
+        {
+            if (client.LastSendBlock != null)
+            {
+                throw new NotImplementedException("Append block to the linked queue ");
+            }
+
+            client.ActualSendBlock = client.LastSendBlock = blockToSend;
+            client.SendEventArgs.SetBuffer(blockToSend.GetNativeBuffer(), dataOffset, dataSize);
+
+            if (!client.Socket.SendAsync(client.SendEventArgs))
+            {
+                //send was handled synchronously
+                Handle_DataSent(client);
+            }
+        }
+
+        /// <summary>
+        /// Event args handler for data sent event.
+        /// </summary>
+        /// <param name="client">Client which data was sent.</param>
+        internal void Handle_DataSent(ClientInternal client)
+        {
+            _pool.Fire_DataSent(client);
+        }
+
         #endregion
     }
 }

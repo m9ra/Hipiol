@@ -32,6 +32,16 @@ namespace Hipiol.Network
         internal Block ReceiveBuffer;
 
         /// <summary>
+        /// Actual block which is sent.
+        /// </summary>
+        internal Block ActualSendBlock;
+
+        /// <summary>
+        /// Block which was added last into the queue (the queue consists of linked blocks)
+        /// </summary>
+        internal Block LastSendBlock;
+
+        /// <summary>
         /// Tag assigned to currrent client.
         /// </summary>
         internal object Tag;
@@ -60,7 +70,8 @@ namespace Hipiol.Network
         {
             Client = new Client(clientIndex, 0);
 
-            ReceiveEventArgs.Completed += (o,e) => manager.HandleReceive(this);
+            ReceiveEventArgs.Completed += (o,e) => manager.Handle_Receive(this);
+            SendEventArgs.Completed += (o, e) => manager.Handle_DataSent(this);
         }
     }
 }

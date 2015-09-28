@@ -72,13 +72,20 @@ namespace Hipiol
         /// <inheritdoc/>
         internal override void Visit(DataSendEvent e)
         {
-            var client = _pool.Network.GetClientInternal(e.Client);
-            if (client == null)
+            var clientInternal = _pool.Network.GetClientInternal(e.Client);
+            if (clientInternal == null)
                 //client is no more available
                 return;
 
             //we just forward send handling to NetworkManager
-            _pool.Network.Send(client, e.Block, e.DataOffset, e.DataSize);
+            _pool.Network.Send(clientInternal, e.Block, e.DataOffset, e.DataSize);
+        }
+
+        /// <inheritdoc/>
+        internal override void Visit(DataSentEvent e)
+        {
+            var clientInternal = e.ClientInternal;
+            _pool.Network.Handle_DataSent(clientInternal);
         }
     }
 }

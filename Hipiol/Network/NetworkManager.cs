@@ -32,6 +32,11 @@ namespace Hipiol.Network
         /// </summary>
         private readonly Stack<int> _freeSlots;
 
+        /// <summary>
+        /// Free chains that can be used.
+        /// </summary>
+        private readonly Stack<BlockChain> _freeChains = new Stack<BlockChain>();
+
         internal NetworkManager(IOPool pool)
         {
             _pool = pool;
@@ -239,13 +244,18 @@ namespace Hipiol.Network
         /// <param name="dataSize">Size of data to send.</param>
         internal void Send(ClientInternal client, Block blockToSend, int dataOffset, int dataSize)
         {
-            if (client.LastSendBlock != null)
-            {
-                throw new NotImplementedException("Append block to the linked queue ");
-            }
+            client.LastSendBlock = chainBlock(blockToSend, dataOffset, dataSize, client.LastSendBlock);
 
-            client.ActualSendBlock = client.LastSendBlock = blockToSend;
+            if (client.ActualSendBlock != null)
+                //there is nothing to do now - another block is sent right now.
+                return;
+
+            //there is only one block
+            client.ActualSendBlock = client.LastSendBlock;
+
+            //send buffer
             client.SendEventArgs.SetBuffer(blockToSend.GetNativeBuffer(), dataOffset, dataSize);
+
 
             if (!client.Socket.SendAsync(client.SendEventArgs))
             {
@@ -261,6 +271,49 @@ namespace Hipiol.Network
         internal void Handle_DataSent(ClientInternal client)
         {
             _pool.Fire_DataSent(client);
+        }
+
+        #endregion
+
+        #region Private utilities
+
+        /// <summary>
+        /// Chains given block.
+        /// </summary>
+        /// <param name="block">Block to chain.</param>
+        /// <param name="previousChain">Previous chain, where created chain will be appended.</param>
+        /// <returns>Chain with given block.</returns>
+        private BlockChain chainBlock(Block block, int dataOffset, int dataSize, BlockChain previousChain = null)
+        {
+            BlockChain freeChain;
+            if (_freeChains.Count == 0)
+                freeChain = new BlockChain();
+            else
+                freeChain = _freeChains.Pop();
+
+            freeChain.Block = block;
+            freeChain.DataOffset = dataOffset;
+            freeChain.DataSize = dataSize;
+
+            if (previousChain != null)
+                //chain with previous chain if available
+                previousChain.Next = freeChain;
+
+            return freeChain;
+        }
+
+        /// <summary>
+        /// Releases given <see cref="BlockChain"/>.
+        /// </summary>
+        /// <param name="chain">Released chain.</param>
+        private void releaseChain(BlockChain chain)
+        {
+            chain.Block = null;
+            chain.Next = null;
+            chain.DataSize = 0;
+            chain.DataOffset = 0;
+
+            _freeChains.Push(chain);
         }
 
         #endregion

@@ -34,12 +34,12 @@ namespace Hipiol.Network
         /// <summary>
         /// Actual block which is sent.
         /// </summary>
-        internal Block ActualSendBlock;
+        internal BlockChain ActualSendBlock;
 
         /// <summary>
         /// Block which was added last into the queue (the queue consists of linked blocks)
         /// </summary>
-        internal Block LastSendBlock;
+        internal BlockChain LastSendBlock;
 
         /// <summary>
         /// Tag assigned to currrent client.

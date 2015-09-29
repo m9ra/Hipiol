@@ -30,7 +30,7 @@ namespace Hipiol.PerformanceTest
             var iterationCount = 20000;
 
             var utils = new TestUtils();
-            utils.StartServer(clientCount);
+            utils.StartServer(clientCount, TestControllers.Receive);
             var data = utils.GetRandomData(1024);
 
             Console.WriteLine("Connecting clients");

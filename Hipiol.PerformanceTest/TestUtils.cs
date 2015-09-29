@@ -20,12 +20,12 @@ namespace Hipiol.PerformanceTest
 
         internal int SentBytesCount { get { return _testClients.Sum(c => c.TotalSentBytesCount); } }
 
-        internal TestServer StartServer(int maxParallelClientCount)
+        internal TestServer StartServer(int maxParallelClientCount, ServerControllerBase serverController)
         {
             if (_server != null)
                 throw new NotSupportedException("Cannot start server twice");
 
-            _server = new TestServer(maxParallelClientCount);
+            _server = new TestServer(maxParallelClientCount, serverController);
 
             return _server;
         }

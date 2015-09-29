@@ -16,6 +16,8 @@ namespace Hipiol.PerformanceTest.Network
 
         internal readonly int ServerPort = 12345;
 
+        private readonly ServerControllerBase _serverController;
+
         private readonly IOPool _pool;
 
         private readonly ServerClient[] _clients = new ServerClient[MaxClientCount];
@@ -28,9 +30,10 @@ namespace Hipiol.PerformanceTest.Network
 
         internal int ClientCount { get { return _nextClient; } }
 
-        internal TestServer(int maxParallelClientCount)
+        internal TestServer(int maxParallelClientCount, ServerControllerBase serverController)
         {
             _pool = new IOPool();
+            _serverController = serverController;
 
             _pool.SetClientHandlers(_clientAccepted, _clientDisconnected);
             _pool.SetDataHandlers(_dataReceived, _dataBlockSent);
@@ -42,36 +45,11 @@ namespace Hipiol.PerformanceTest.Network
             }
         }
 
-        private IEnumerable<Block> prepareData(IOPool pool)
-        {
-            var blocks = new List<Block>();
-            for (var i = 0; i < 100; ++i)
-            {
-                var block = pool.CreateConstantBlock(new byte[1000]);
-                blocks.Add(block);
-            }
-
-            return blocks;
-        }
-
         private void _dataReceived(DataTransferController controller, Block block)
         {
-            if (block == null)
-            {
-                //no data are available for the client - there is probably an timeout
-                //we won't generate any response
-                controller.Disconnect();
-                return;
-            }
-
-            if (controller.ReceivedBytes == 0)
-                //nothing to do
-                return;
-
             ReceivedBytesCount += controller.ReceivedBytes;
 
-            var client = controller.ClientTag as ServerClient;
-            client.ReportData(controller.ReceivedBytes);
+            _serverController.DataReceived(controller, block);
         }
 
         private void _dataBlockSent(DataTransferController controller)
@@ -88,8 +66,7 @@ namespace Hipiol.PerformanceTest.Network
             controller.SetTag(serverClient);
             _nextClient += 1;
 
-            //we will allow receiving of data for the client.
-            controller.AllowReceive(0);
+            _serverController.ClientAccepted(controller);            
         }
 
         private void _clientDisconnected(ClientController controller)

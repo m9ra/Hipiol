@@ -46,6 +46,7 @@
     <Compile Include="Network\ServerClient.cs" />
     <Compile Include="Network\ServerControllerBase.cs" />
     <Compile Include="Network\ServerControllers\ReceiveController.cs" />
+    <Compile Include="Network\ServerControllers\SendController.cs" />
     <Compile Include="Network\TestClient.cs" />
     <Compile Include="Network\TestControllers.cs" />
     <Compile Include="Network\TestServer.cs" />

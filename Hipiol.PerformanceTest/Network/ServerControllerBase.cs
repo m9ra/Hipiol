@@ -11,8 +11,26 @@ namespace Hipiol.PerformanceTest.Network
 {
     abstract class ServerControllerBase
     {
-
         internal TestClient TestClient { get; private set; }
+
+        internal IOPool IOPool { get; private set; }
+
+        internal void InitializePool(IOPool pool)
+        {
+            if (IOPool != null)
+                throw new NotSupportedException("Cannot reset IOPool");
+
+            if (pool == null)
+                throw new ArgumentNullException("pool");
+
+            IOPool = pool;
+            OnPoolInitialization();
+        }
+
+        internal virtual void OnPoolInitialization()
+        {
+            //by default we do nothing
+        }
 
         internal virtual void DataReceived(DataTransferController controller, Block block)
         {

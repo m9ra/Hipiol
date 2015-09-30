@@ -44,7 +44,7 @@ namespace Hipiol.PerformanceTest.Network
             _tcpClient.Connect(IPAddress.Loopback, _server.ServerPort);
         }
 
-        internal void ConenctWithIdentification()
+        internal void ConnectWithIdentification()
         {
             var originalClientCount = _server.ClientCount;
             Connect();
@@ -78,6 +78,11 @@ namespace Hipiol.PerformanceTest.Network
         internal int SentBytesCount(int i)
         {
             return _sentBytes[i];
+        }
+
+        internal int Receive(byte[] buffer)
+        {
+            return _tcpClient.Client.Receive(buffer);
         }
     }
 }

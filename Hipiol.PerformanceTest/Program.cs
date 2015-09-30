@@ -18,7 +18,8 @@ namespace Hipiol.PerformanceTest
     {
         static void Main(string[] args)
         {
-            var ioDelay_95 = TestReceiveDelay_95();
+            //var ioDelayReceive_95 = TestReceiveDelay_95();
+            var ioDelaySend_95 = TestSendDelay_95();
             var avgReceiveSpeed = TestAvgReceiveSpeed();
         }
 
@@ -30,7 +31,7 @@ namespace Hipiol.PerformanceTest
             var iterationCount = 20000;
 
             var utils = new TestUtils();
-            utils.StartServer(clientCount, TestControllers.Receive);
+            utils.StartServer(TestControllers.Receive, clientCount);
             var data = utils.GetRandomData(1024);
 
             Console.WriteLine("Connecting clients");
@@ -68,6 +69,36 @@ namespace Hipiol.PerformanceTest
 
             return transferPercentage.GetThreshold(0.95);
         }
+
+        static double TestSendDelay_95()
+        {
+            var iterationCount = 20000;
+
+            var utils = new TestUtils();
+            utils.StartServer(TestControllers.SendRandom);
+
+
+            Console.WriteLine("Starting test");
+            var startTime = DateTime.Now;
+
+            var buffer = new byte[1024];
+            for (var testIndex = 0; testIndex < iterationCount; ++testIndex)
+            {
+                var client = utils.GetClient();
+                client.ConnectWithIdentification();
+                var receivedBytes = client.Receive(buffer);
+                break;
+            }
+
+            Console.WriteLine(" waiting");
+            Thread.Sleep(1000);
+            utils.WaitOnPendingData();
+            var endTime = DateTime.Now;
+            Console.WriteLine("End\n");
+
+            throw new NotImplementedException();
+        }
+
 
         static double TestSendDelay()
         {

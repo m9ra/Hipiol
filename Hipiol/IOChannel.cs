@@ -85,7 +85,10 @@ namespace Hipiol
         internal override void Visit(DataSentEvent e)
         {
             var clientInternal = e.ClientInternal;
-            _pool.Network.Handle_DataSent(clientInternal);
+
+            _controller.SetClient(clientInternal);
+            _pool.Handle_DataSent(_controller);
+            _controller.SetClient(null);
         }
     }
 }

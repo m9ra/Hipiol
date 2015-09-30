@@ -20,7 +20,7 @@ namespace Hipiol.PerformanceTest
 
         internal int SentBytesCount { get { return _testClients.Sum(c => c.TotalSentBytesCount); } }
 
-        internal TestServer StartServer(int maxParallelClientCount, ServerControllerBase serverController)
+        internal TestServer StartServer(ServerControllerBase serverController, int maxParallelClientCount = 1000)
         {
             if (_server != null)
                 throw new NotSupportedException("Cannot start server twice");
@@ -47,12 +47,14 @@ namespace Hipiol.PerformanceTest
             return clients;
         }
 
+
+
         internal TestClient[] GetIdentifiedConnectedClients(int clientCount)
         {
             var clients = GetClients(clientCount);
             for (var i = 0; i < clients.Length; ++i)
             {
-                clients[i].ConenctWithIdentification();
+                clients[i].ConnectWithIdentification();
             }
 
             return clients;
@@ -66,12 +68,18 @@ namespace Hipiol.PerformanceTest
             var clients = new List<TestClient>();
             for (var i = 0; i < clientCount; ++i)
             {
-                var client = new TestClient(_server);
-                _testClients.Add(client);
+                var client = GetClient();
                 clients.Add(client);
             }
 
             return clients.ToArray();
+        }
+
+        internal TestClient GetClient()
+        {
+            var client = new TestClient(_server);
+            _testClients.Add(client);
+            return client;
         }
 
         internal IEnumerable<double> GetTransferTimes()

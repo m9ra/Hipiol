@@ -323,6 +323,14 @@ namespace Hipiol
             _dataReceivedHandler(controller, controller.ReceivedBlock);
         }
 
+        /// <summary>
+        /// Handle client that which data sent was completed.
+        /// </summary>
+        /// <param name="controller">Controller of the client.</param>
+        internal void Handle_DataSent(DataTransferController controller)
+        {
+            _dataBlockSentHandler(controller);
+        }
         #endregion
     }
 }

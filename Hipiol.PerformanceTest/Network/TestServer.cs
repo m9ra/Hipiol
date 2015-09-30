@@ -34,6 +34,7 @@ namespace Hipiol.PerformanceTest.Network
         {
             _pool = new IOPool();
             _serverController = serverController;
+            _serverController.InitializePool(_pool);
 
             _pool.SetClientHandlers(_clientAccepted, _clientDisconnected);
             _pool.SetDataHandlers(_dataReceived, _dataBlockSent);

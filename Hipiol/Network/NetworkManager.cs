@@ -256,7 +256,6 @@ namespace Hipiol.Network
             //send buffer
             client.SendEventArgs.SetBuffer(blockToSend.GetNativeBuffer(), dataOffset, dataSize);
 
-
             if (!client.Socket.SendAsync(client.SendEventArgs))
             {
                 //send was handled synchronously

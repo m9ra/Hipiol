@@ -26,6 +26,8 @@ namespace Hipiol.PerformanceTest.Network
 
         internal volatile int ReceivedBytesCount;
 
+        internal volatile int SentBytesCount;
+
         internal IEnumerable<ServerClient> Clients { get { return _clients.Take(_nextClient); } }
 
         internal int ClientCount { get { return _nextClient; } }
@@ -46,16 +48,18 @@ namespace Hipiol.PerformanceTest.Network
             }
         }
 
-        private void _dataReceived(DataTransferController controller, Block block)
+        private void _dataReceived(DataReceivedController controller, Block block)
         {
             ReceivedBytesCount += controller.ReceivedBytes;
 
             _serverController.DataReceived(controller, block);
         }
 
-        private void _dataBlockSent(DataTransferController controller)
+        private void _dataBlockSent(DataSentController controller)
         {
-            throw new NotImplementedException();
+            SentBytesCount += controller.SentBytes;
+
+            _serverController.DataSent(controller);
         }
 
         private void _clientAccepted(ClientController controller)

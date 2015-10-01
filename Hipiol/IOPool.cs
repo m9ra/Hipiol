@@ -32,13 +32,13 @@ namespace Hipiol
     /// </summary>
     /// <param name="controller">Client which received the data.</param>
     /// <param name="block">Block where received data are stored.</param>
-    public delegate void DataReceived(DataTransferController controller, Block block);
+    public delegate void DataReceived(DataReceivedController controller, Block block);
 
     /// <summary>
     /// Delegate used for data sent completition events.
     /// </summary>
     /// <param name="client">Client which data block sending was completed.</param>
-    public delegate void DataBlockSent(DataTransferController controller);
+    public delegate void DataBlockSent(DataSentController controller);
 
     /// <summary>
     /// Represents a pool which provides lightweight access to disk and network IO. 
@@ -318,7 +318,7 @@ namespace Hipiol
         /// Handle client that has received data.
         /// </summary>
         /// <param name="controller">Controller of the client.</param>
-        internal void Handle_DataReceive(DataTransferController controller)
+        internal void Handle_DataReceive(DataReceivedController controller)
         {
             _dataReceivedHandler(controller, controller.ReceivedBlock);
         }
@@ -327,7 +327,7 @@ namespace Hipiol
         /// Handle client that which data sent was completed.
         /// </summary>
         /// <param name="controller">Controller of the client.</param>
-        internal void Handle_DataSent(DataTransferController controller)
+        internal void Handle_DataSent(DataSentController controller)
         {
             _dataBlockSentHandler(controller);
         }

@@ -35,21 +35,24 @@ namespace Hipiol
     {
         private readonly IOPool _pool;
 
-        private readonly DataTransferController _controller;
+        private readonly DataReceivedController _receiveController;
+
+        private readonly DataSentController _sentController;
 
         internal IOProcessor(IOPool pool)
         {
             _pool = pool;
-            _controller = new DataTransferController(pool);
+            _receiveController = new DataReceivedController(pool);
+            _sentController = new DataSentController(pool);
         }
 
         /// <inheritdoc/>
         internal override void Visit(ClientAcceptedEvent e)
         {
             var client = _pool.Network.RegisterClient(e.Socket, e.ArrivalTime);
-            _controller.SetClient(client);
-            _pool.Handle_RegisteredClient(_controller);
-            _controller.SetClient(null);
+            _receiveController.SetClient(client);
+            _pool.Handle_RegisteredClient(_receiveController);
+            _receiveController.SetClient(null);
         }
 
         /// <inheritdoc/>
@@ -61,12 +64,12 @@ namespace Hipiol
             if (client.ReceiveEventArgs.SocketError != SocketError.Success)
                 throw new NotImplementedException("Handle socket errors");
 
-            _controller.SetClient(client);
-            _pool.Handle_DataReceive(_controller);
+            _receiveController.SetClient(client);
+            _pool.Handle_DataReceive(_receiveController);
             if (client.AllowReceiving)
                 _pool.Network.RequestReceiving(client);
 
-            _controller.SetClient(null);
+            _receiveController.SetClient(null);
         }
 
         /// <inheritdoc/>
@@ -86,9 +89,11 @@ namespace Hipiol
         {
             var clientInternal = e.ClientInternal;
 
-            _controller.SetClient(clientInternal);
-            _pool.Handle_DataSent(_controller);
-            _controller.SetClient(null);
+            _sentController.SetClient(clientInternal);
+            _pool.Handle_DataSent(_sentController);
+            _sentController.SetClient(null);
+
+            throw new NotImplementedException("handle sending of chained blocks + ensure that block has been sent completely");
         }
     }
 }

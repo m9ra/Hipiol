@@ -12,22 +12,8 @@ namespace Hipiol.PerformanceTest.Network.ServerControllers
 {
     class ReceiveController : ServerControllerBase
     {
-        internal override void DataReceived(DataTransferController controller, Block block)
+        internal override void DataReceived(DataReceivedController controller, Block block)
         {
-            if (block == null)
-            {
-                //no data are available for the client - there is probably an timeout
-                //we won't generate any response
-                controller.Disconnect();
-                return;
-            }
-
-            if (controller.ReceivedBytes == 0)
-                //nothing to do
-                return;
-
-            
-
             var client = controller.ClientTag as ServerClient;
             client.ReportData(controller.ReceivedBytes);
         }

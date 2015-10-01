@@ -85,16 +85,43 @@ namespace Hipiol.Network
     }
 
     /// <summary>
-    /// Controlls settings of client <see cref="ClientController"/>, and routines for data transfer.
+    /// Controlls settings of <see cref="ClientController"/>, and routines for data receiving.
     /// </summary>
-    public class DataTransferController : ClientController
+    public class DataReceivedController : ClientController
     {
+        /// <summary>
+        /// Block which contains received data.
+        /// </summary>
         internal Block ReceivedBlock { get { return ClientInternal.ReceiveBuffer; } }
 
+        /// <summary>
+        /// How many bytes has been received.
+        /// </summary>
         public int ReceivedBytes { get { return ClientInternal.ReceiveEventArgs.BytesTransferred; } }
 
-        internal DataTransferController(IOPool pool)
+        internal DataReceivedController(IOPool pool)
             : base(pool)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Controlls settings of <see cref="ClientController"/> after data sent
+    /// </summary>
+    public class DataSentController : ClientController
+    {
+        /// <summary>
+        /// Block which has been sent.
+        /// </summary>
+        internal Block SentBlock { get { return ClientInternal.ActualSendBlock.Block; } }
+
+        /// <summary>
+        /// How many bytes has been sent.
+        /// </summary>
+        public int SentBytes { get { return ClientInternal.SendEventArgs.BytesTransferred; } }
+
+        internal DataSentController(IOPool pool)
+            :base(pool)
         {
         }
     }

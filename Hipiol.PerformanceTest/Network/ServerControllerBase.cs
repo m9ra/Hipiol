@@ -32,7 +32,12 @@ namespace Hipiol.PerformanceTest.Network
             //by default we do nothing
         }
 
-        internal virtual void DataReceived(DataTransferController controller, Block block)
+        internal virtual void DataReceived(DataReceivedController controller, Block block)
+        {
+            //by default we do nothing
+        }
+
+        internal virtual void DataSent(DataSentController controller)
         {
             //by default we do nothing
         }

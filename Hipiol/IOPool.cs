@@ -309,7 +309,7 @@ namespace Hipiol
         /// Handle client that has been registered.
         /// </summary>
         /// <param name="controller">Controller of registered client.</param>
-        internal void Handle_RegisteredClient(ClientController controller)
+        internal void Report_RegisteredClient(ClientController controller)
         {
             _clientAcceptedHandler(controller);
         }
@@ -318,7 +318,7 @@ namespace Hipiol
         /// Handle client that has received data.
         /// </summary>
         /// <param name="controller">Controller of the client.</param>
-        internal void Handle_DataReceive(DataReceivedController controller)
+        internal void Report_DataReceive(DataReceivedController controller)
         {
             _dataReceivedHandler(controller, controller.ReceivedBlock);
         }
@@ -327,7 +327,7 @@ namespace Hipiol
         /// Handle client that which data sent was completed.
         /// </summary>
         /// <param name="controller">Controller of the client.</param>
-        internal void Handle_DataSent(DataSentController controller)
+        internal void Report_DataSent(DataSentController controller)
         {
             _dataBlockSentHandler(controller);
         }

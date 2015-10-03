@@ -33,10 +33,19 @@ namespace Hipiol
 
     class IOProcessor : EventVisitorBase
     {
+        /// <summary>
+        /// Pool which uses current <see cref="IOProcessor"/>
+        /// </summary>
         private readonly IOPool _pool;
 
+        /// <summary>
+        /// Controller for receiving events.
+        /// </summary>
         private readonly DataReceivedController _receiveController;
 
+        /// <summary>
+        /// Controler for sent events.
+        /// </summary>
         private readonly DataSentController _sentController;
 
         internal IOProcessor(IOPool pool)
@@ -49,26 +58,18 @@ namespace Hipiol
         /// <inheritdoc/>
         internal override void Visit(ClientAcceptedEvent e)
         {
-            var client = _pool.Network.RegisterClient(e.Socket, e.ArrivalTime);
-            _receiveController.SetClient(client);
-            _pool.Handle_RegisteredClient(_receiveController);
+            var clientInternal = _pool.Network.RegisterClient(e.Socket, e.ArrivalTime);
+
+            _receiveController.SetClient(clientInternal);
+            _pool.Network.Handle_RegisteredClient(_receiveController);
             _receiveController.SetClient(null);
         }
 
         /// <inheritdoc/>
         internal override void Visit(DataReceivedEvent e)
         {
-            var client = e.ClientInternal;
-
-            //is called when client received data.
-            if (client.ReceiveEventArgs.SocketError != SocketError.Success)
-                throw new NotImplementedException("Handle socket errors");
-
-            _receiveController.SetClient(client);
-            _pool.Handle_DataReceive(_receiveController);
-            if (client.AllowReceiving)
-                _pool.Network.RequestReceiving(client);
-
+            _receiveController.SetClient(e.ClientInternal);
+            _pool.Network.Handle_DataReceive(_receiveController);
             _receiveController.SetClient(null);
         }
 
@@ -87,13 +88,9 @@ namespace Hipiol
         /// <inheritdoc/>
         internal override void Visit(DataSentEvent e)
         {
-            var clientInternal = e.ClientInternal;
-
-            _sentController.SetClient(clientInternal);
-            _pool.Handle_DataSent(_sentController);
+            _sentController.SetClient(e.ClientInternal);
+            _pool.Network.Handle_DataSent(_sentController);
             _sentController.SetClient(null);
-
-            throw new NotImplementedException("handle sending of chained blocks + ensure that block has been sent completely");
         }
     }
 }

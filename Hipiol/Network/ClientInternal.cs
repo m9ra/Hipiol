@@ -70,8 +70,8 @@ namespace Hipiol.Network
         {
             Client = new Client(clientIndex, 0);
 
-            ReceiveEventArgs.Completed += (o,e) => manager.Handle_Receive(this);
-            SendEventArgs.Completed += (o, e) => manager.Handle_DataSent(this);
+            ReceiveEventArgs.Completed += (o,e) => manager.Callback_Receive(this);
+            SendEventArgs.Completed += (o, e) => manager.Callback_DataSent(this);
         }
     }
 }

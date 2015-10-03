@@ -18,7 +18,7 @@ namespace Hipiol.PerformanceTest
     {
         static void Main(string[] args)
         {
-            //var ioDelayReceive_95 = TestReceiveDelay_95();
+            var ioDelayReceive_95 = TestReceiveDelay_95();
             var ioDelaySend_95 = TestSendDelay_95();
             var avgReceiveSpeed = TestAvgReceiveSpeed();
         }

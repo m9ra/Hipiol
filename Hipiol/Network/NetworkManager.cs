@@ -180,6 +180,15 @@ namespace Hipiol.Network
             return client;
         }
 
+        /// <summary>
+        /// Handle client which has been registered.
+        /// </summary>
+        /// <param name="controller">Controller of the client.</param>
+        internal void Handle_RegisteredClient(ClientController controller)
+        {
+            _pool.Report_RegisteredClient(controller);
+        }
+
         #endregion
 
         #region Data receiving
@@ -218,17 +227,33 @@ namespace Hipiol.Network
             if (!client.Socket.ReceiveAsync(client.ReceiveEventArgs))
             {
                 //receive was handled synchronously
-                Handle_Receive(client);
+                Callback_Receive(client);
             }
         }
 
         /// <summary>
-        /// Event args handler for data receiving.
+        /// Event args callback for data receiving.
         /// </summary>
         /// <param name="client">Client which received data.</param>
-        internal void Handle_Receive(ClientInternal client)
+        internal void Callback_Receive(ClientInternal client)
         {
             _pool.Fire_DataReceive(client);
+        }
+
+        /// <summary>
+        /// Handles event that is fired after client receives data.
+        /// </summary>
+        /// <param name="controller">Controller with the client.</param>
+        internal void Handle_DataReceive(DataReceivedController controller)
+        {
+            var clientInternal = controller.ClientInternal;
+            if (clientInternal.ReceiveEventArgs.SocketError != SocketError.Success)
+                throw new NotImplementedException("Handle socket errors");
+
+            _pool.Report_DataReceive(controller);
+
+            if (clientInternal.AllowReceiving)
+                _pool.Network.RequestReceiving(clientInternal);
         }
 
         #endregion
@@ -259,17 +284,33 @@ namespace Hipiol.Network
             if (!client.Socket.SendAsync(client.SendEventArgs))
             {
                 //send was handled synchronously
-                Handle_DataSent(client);
+                Callback_DataSent(client);
             }
         }
 
         /// <summary>
-        /// Event args handler for data sent event.
+        /// Event args callback for data sent event.
         /// </summary>
         /// <param name="client">Client which data was sent.</param>
-        internal void Handle_DataSent(ClientInternal client)
+        internal void Callback_DataSent(ClientInternal client)
         {
             _pool.Fire_DataSent(client);
+        }
+
+        /// <summary>
+        /// Handles event which is fired after data was sent.
+        /// </summary>
+        /// <param name="controller">Controller with client </param>
+        internal void Handle_DataSent(DataSentController controller)
+        {
+            var clientInternal = controller.ClientInternal;
+            if (clientInternal.ActualSendBlock.DataSize != clientInternal.SendEventArgs.BytesTransferred)
+                //we don't expect that it may happen
+                throw new NotSupportedException("Partial block sending");
+
+            _pool.Report_DataSent(controller);
+
+            throw new NotImplementedException("handle sending of chained blocks");
         }
 
         #endregion

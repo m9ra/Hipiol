@@ -19,7 +19,6 @@ namespace Hipiol.PerformanceTest
         static void Main(string[] args)
         {
             var ioDelayReceive_95 = TestReceiveDelay_95();
-            var ioDelaySend_95 = TestSendDelay_95();
             var avgReceiveSpeed = TestAvgReceiveSpeed();
         }
 
@@ -51,53 +50,10 @@ namespace Hipiol.PerformanceTest
                 client.SendData(data);
             }
 
-            Console.WriteLine(" waiting");
-            utils.WaitOnPendingData();
-            var endTime = DateTime.Now;
-            Console.WriteLine("End\n");
-
-
-            var connectionTimes = utils.GetConnectionTimes();
-            var transferTimes = utils.GetTransferTimes();
-
-            var transferPercentage = PrintPercentage("Transfer times", transferTimes);
-            PrintPercentage("Connection times", connectionTimes);
-
-            var duration = (endTime - startTime).TotalMilliseconds;
-
-            Console.WriteLine("Test duration {0:0.000}", duration);
-
-            return transferPercentage.GetThreshold(0.95);
+            return getTransferTime_95(utils, startTime);
         }
 
-        static double TestSendDelay_95()
-        {
-            var iterationCount = 20000;
-
-            var utils = new TestUtils();
-            utils.StartServer(TestControllers.SendRandom);
-
-
-            Console.WriteLine("Starting test");
-            var startTime = DateTime.Now;
-
-            var buffer = new byte[1024];
-            for (var testIndex = 0; testIndex < iterationCount; ++testIndex)
-            {
-                var client = utils.GetClient();
-                client.ConnectWithIdentification();
-                var receivedBytes = client.Receive(buffer);
-                break;
-            }
-
-            Console.WriteLine(" waiting");
-            Thread.Sleep(1000);
-            utils.WaitOnPendingData();
-            var endTime = DateTime.Now;
-            Console.WriteLine("End\n");
-
-            throw new NotImplementedException();
-        }
+  
 
 
         static double TestSendDelay()
@@ -124,6 +80,27 @@ namespace Hipiol.PerformanceTest
             }
 
             return percentage;
+        }
+
+        private static double getTransferTime_95(TestUtils utils, DateTime startTime)
+        {
+            Console.WriteLine(" waiting");
+            utils.WaitOnPendingData();
+            var endTime = DateTime.Now;
+            Console.WriteLine("End\n");
+
+
+            var connectionTimes = utils.GetConnectionTimes();
+            var transferTimes = utils.GetTransferTimes();
+
+            var transferPercentage = PrintPercentage("Transfer times", transferTimes);
+            PrintPercentage("Connection times", connectionTimes);
+
+            var duration = (endTime - startTime).TotalMilliseconds;
+
+            Console.WriteLine("Test duration {0:0.000}", duration);
+
+            return transferPercentage.GetThreshold(0.95);
         }
     }
 }

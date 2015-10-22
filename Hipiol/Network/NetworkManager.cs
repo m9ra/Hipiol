@@ -310,7 +310,15 @@ namespace Hipiol.Network
 
             _pool.Report_DataSent(controller);
 
-            throw new NotImplementedException("handle sending of chained blocks");
+            //prepare new block for sending
+            var sentBlock = clientInternal.ActualSendBlock;
+            clientInternal.ActualSendBlock = sentBlock.Next;
+
+            //release chain of sent block
+            releaseChain(sentBlock);
+
+            if (clientInternal.ActualSendBlock != null)
+                throw new NotImplementedException("handle sending of chained blocks");
         }
 
         #endregion

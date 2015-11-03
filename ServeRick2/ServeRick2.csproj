@@ -44,13 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Http\Header.cs" />
     <Compile Include="Http\HeaderDefinitions\ContentLengthHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\ContentRangeHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\IntHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\StringHeader.cs" />
-    <Compile Include="Http\RequestHeaderParser.cs" />
+    <Compile Include="Http\Parsing\AutomatonBuilder.cs" />
+    <Compile Include="Http\Parsing\AutomatonSwitch.cs" />
+    <Compile Include="Http\Parsing\RequestHeaderParser.cs" />
     <Compile Include="Http\HeaderDefinitions\Range.cs" />
+    <Compile Include="Http\Request.cs" />
     <Compile Include="Http\Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

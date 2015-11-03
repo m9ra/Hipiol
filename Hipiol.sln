@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hipiol.PerformanceTest", "H
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick2", "ServeRick2\ServeRick2.csproj", "{39F60172-C1E6-44B0-A208-63189559002C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serverick2.Tests", "Serverick2.Tests\Serverick2.Tests.csproj", "{CAEB42E1-E106-407D-AA5C-BC0238F8FB64}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick2.Tests", "Serverick2.Tests\ServeRick2.Tests.csproj", "{CAEB42E1-E106-407D-AA5C-BC0238F8FB64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

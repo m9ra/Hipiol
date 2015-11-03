@@ -16,13 +16,26 @@ namespace ServeRick2.Http
     /// <param name="currentByte">Byte which caused action execution.</param>
     internal delegate Expression ActionCreator(Expression request, Expression currentByte);
 
-    public abstract class Header<T>
+    public abstract class Header
     {
         /// <summary>
         /// Name of the header.
         /// </summary>
-        private readonly string _name;
+        internal readonly string Name;
 
+        protected Header(string name)
+        {
+            Name = name;
+        }
+
+        internal void BuildParser(Parsing.AutomatonBuilder builder)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public abstract class Header<T> : Header
+    {
         /// <summary>
         /// Constant representing 10. Is used for multiplication.
         /// </summary>
@@ -35,8 +48,8 @@ namespace ServeRick2.Http
 
 
         internal Header(string name)
+            : base(name)
         {
-            _name = name;
         }
 
         #region Parsing utilities

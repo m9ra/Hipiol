@@ -51,7 +51,8 @@
     <Compile Include="Http\HeaderDefinitions\IntHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\StringHeader.cs" />
     <Compile Include="Http\Parsing\AutomatonBuilder.cs" />
-    <Compile Include="Http\Parsing\AutomatonSwitch.cs" />
+    <Compile Include="Http\Parsing\AutomatonBuilderContext.cs" />
+    <Compile Include="Http\Parsing\AutomatonState.cs" />
     <Compile Include="Http\Parsing\RequestHeaderParser.cs" />
     <Compile Include="Http\HeaderDefinitions\Range.cs" />
     <Compile Include="Http\Request.cs" />

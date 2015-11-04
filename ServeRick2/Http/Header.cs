@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Linq.Expressions;
 
+using ServeRick2.Http.Parsing;
+
 namespace ServeRick2.Http
 {
     /// <summary>
@@ -28,7 +30,7 @@ namespace ServeRick2.Http
             Name = name;
         }
 
-        internal void BuildParser(Parsing.AutomatonBuilder builder)
+        internal Expression BuildParser(AutomatonBuilderContext context)
         {
             throw new NotImplementedException();
         }

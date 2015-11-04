@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Linq.Expressions;
+
 namespace ServeRick2.Http.Parsing
 {
     internal delegate void ParsingAutomaton(Request request);
 
-    internal delegate void AutomatonBuilderDirector(AutomatonBuilder builder);
+    internal delegate Expression AutomatonBuilderDirector(AutomatonBuilderContext context);
 
     class RequestHeaderParser
     {
@@ -61,17 +63,17 @@ namespace ServeRick2.Http.Parsing
             return builder.Compile();
         }
 
-        private static void _getMethod(AutomatonBuilder builder)
+        private static Expression _getMethod(AutomatonBuilderContext builder)
         {
             throw new NotImplementedException();
         }
 
-        private static void _postMethod(AutomatonBuilder builder)
+        private static Expression _postMethod(AutomatonBuilderContext builder)
         {
             throw new NotImplementedException();
         }
 
-        private static void _putMethod(AutomatonBuilder builder)
+        private static Expression _putMethod(AutomatonBuilderContext builder)
         {
             throw new NotImplementedException();
         }

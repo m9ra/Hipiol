@@ -95,7 +95,29 @@ namespace ServeRick2.Http.Parsing
         /// <returns>Compiled state.</returns>
         internal SwitchCase Compile(AutomatonBuilderContext context)
         {
-            throw new NotImplementedException();
+            var stateBody = compileStateBody(context);
+            
+            return Expression.SwitchCase(stateBody, Expression.Constant(Id));
+        }
+
+        private Expression compileStateBody(AutomatonBuilderContext context)
+        {
+            if (_director != null)
+                //we can directly compile the action
+                return _director(context);
+
+
+            //compile byte switch table
+            var byteTargetCases = new List<SwitchCase>();
+            foreach (var byteTargetPair in _byteTargets)
+            {
+                var gotoStateExpression = context.GoToState(byteTargetPair.Value.Id);
+
+                var byteTargetCase = Expression.SwitchCase(gotoStateExpression, Expression.Constant(byteTargetPair.Key));
+                byteTargetCases.Add(byteTargetCase);
+            }
+
+            return Expression.Switch(context.InputVariable, byteTargetCases.ToArray());
         }
     }
 }

@@ -11,6 +11,11 @@ namespace ServeRick2.Http.Parsing
     class AutomatonBuilder
     {
         /// <summary>
+        /// Context which is used for building the automaton.
+        /// </summary>
+        private readonly AutomatonBuilderContext _context;
+
+        /// <summary>
         /// States that has been registered.
         /// </summary>
         private readonly List<AutomatonState> _registeredStates = new List<AutomatonState>();
@@ -21,17 +26,13 @@ namespace ServeRick2.Http.Parsing
         private readonly AutomatonState _rootState;
 
         /// <summary>
-        /// Context which is used for building the automaton.
-        /// </summary>
-        private readonly AutomatonBuilderContext _context;
-
-        /// <summary>
         /// State that was used as last target state.
         /// </summary>
         private AutomatonState _lastTargetState;
 
         internal AutomatonBuilder()
         {
+            _context = new AutomatonBuilderContext();
             _rootState = createNewState();
             _lastTargetState = _rootState;
         }

@@ -11,9 +11,14 @@ namespace ServeRick2.Http.Parsing
     class AutomatonBuilderContext
     {
         /// <summary>
-        /// Variable where actual state is stored;
+        /// Variable where actual state is stored.
         /// </summary>
         internal readonly Expression StateVariable = Expression.Variable(typeof(int));
+
+        /// <summary>
+        /// Variable where actual input byte is stored.
+        /// </summary>
+        internal readonly Expression InputVariable = Expression.Variable(typeof(byte));
 
         /// <summary>
         /// Creates expression reading string into indexed storage ending with given chars.
@@ -32,6 +37,16 @@ namespace ServeRick2.Http.Parsing
         internal Expression PassLine()
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates expression which set next state for the automaton.
+        /// </summary>
+        /// <param name="state">State to set.</param>
+        /// <returns>Created expression.</returns>
+        internal Expression GoToState(int state)
+        {
+            return Expression.Block(typeof(void), Expression.Assign(StateVariable, Expression.Constant(state)));
         }
     }
 }

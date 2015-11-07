@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,6 +22,15 @@ namespace ServeRick2.Tests.Http
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US"); 
             var automaton = RequestHeaderParser.CompileAutomaton(new List<Header>());
+
+            var request = new Request();
+            var input = "PUT abcdef HTTP1.0\n";
+            var inputBytes = Encoding.ASCII.GetBytes(input);
+
+            request.Inputs = inputBytes;
+            request.InputsEndOffset = inputBytes.Length;
+
+            automaton(request);
         }
     }
 }

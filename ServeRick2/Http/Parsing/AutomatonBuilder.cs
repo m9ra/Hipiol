@@ -96,17 +96,21 @@ namespace ServeRick2.Http.Parsing
         /// <returns>The automaton.</returns>
         internal ParsingAutomaton Compile()
         {
+            //last target state has to be filled
+            _lastTargetState.SetAction((c) => Expression.Break(c.EndInputReading), null);
+
             //compile all states
             var stateActions = new List<SwitchCase>();
-            foreach (var statePair in _registeredStates)
+            foreach (var state in _registeredStates)
             {
-                var stateCase = statePair.Compile(_context);
+                var stateCase = state.Compile(_context);
+                stateActions.Add(stateCase);
             }
 
+            var stateSwitch = Expression.Switch(_context.StateStorage, stateActions.ToArray());
+            var automatonExpression = _context.IterateInput(stateSwitch);
 
-            var stateSwitch = Expression.Switch(_context.StateVariable, stateActions.ToArray());
-
-            throw new NotImplementedException();
+            return Expression.Lambda<ParsingAutomaton>(automatonExpression, _context.RequestParameter).Compile();
         }
 
         #region Private utilities

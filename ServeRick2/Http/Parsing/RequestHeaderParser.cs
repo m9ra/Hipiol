@@ -27,14 +27,14 @@ namespace ServeRick2.Http.Parsing
         /// <param name="buffer">Buffer with data.</param>
         internal void Accept(int startOffset, int endOffset, byte[] buffer)
         {
-            for (var index = startOffset; index < endOffset; ++startOffset)
-            {
-                var acceptedByte = buffer[index];
-                throw new NotImplementedException("Feed the state automaton");
-
-            }
+            throw new NotImplementedException("Feed the state automaton");
         }
 
+        /// <summary>
+        /// Compiles automataon for given headers.
+        /// </summary>
+        /// <param name="headers">Headers to be compiled.</param>
+        /// <returns>The compiled automaton.</returns>
         internal static ParsingAutomaton CompileAutomaton(IEnumerable<Header> headers)
         {
             //first we will parse method
@@ -59,23 +59,44 @@ namespace ServeRick2.Http.Parsing
             }
 
             //read headers
-            builder.Emit_RepeatedActionSwitch(headerSwitch);
+            if (headerSwitch.Count > 0)
+                builder.Emit_RepeatedActionSwitch(headerSwitch);
+
             return builder.Compile();
         }
 
-        private static Expression _getMethod(AutomatonBuilderContext builder)
+        #region Parsing utilities
+
+        /// <summary>
+        /// Creates expression seting method to GET.
+        /// </summary>
+        /// <param name="context">Build context.</param>
+        /// <returns>The created expression.</returns>
+        private static Expression _getMethod(AutomatonBuilderContext context)
         {
-            throw new NotImplementedException();
+            return Expression.Assign(context.MethodStorage, Expression.Constant(Method.GET));
         }
 
-        private static Expression _postMethod(AutomatonBuilderContext builder)
+        /// <summary>
+        /// Creates expression seting method to POST.
+        /// </summary>
+        /// <param name="context">Build context.</param>
+        /// <returns>The created expression.</returns>
+        private static Expression _postMethod(AutomatonBuilderContext context)
         {
-            throw new NotImplementedException();
+            return Expression.Assign(context.MethodStorage, Expression.Constant(Method.POST));
         }
 
-        private static Expression _putMethod(AutomatonBuilderContext builder)
+        /// <summary>
+        /// Creates expression seting method to PUT.
+        /// </summary>
+        /// <param name="context">Build context.</param>
+        /// <returns>The created expression.</returns>
+        private static Expression _putMethod(AutomatonBuilderContext context)
         {
-            throw new NotImplementedException();
+            return Expression.Assign(context.MethodStorage, Expression.Constant(Method.PUT));
         }
+
+        #endregion
     }
 }

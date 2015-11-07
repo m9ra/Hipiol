@@ -48,8 +48,6 @@ namespace ServeRick2.Http.Parsing
             if (stateActionDirector == null)
                 throw new ArgumentNullException("stateActionDirector");
 
-            if (targetState == null)
-                throw new ArgumentNullException("targetState");
 
             _director = stateActionDirector;
             _targetState = targetState;
@@ -96,16 +94,25 @@ namespace ServeRick2.Http.Parsing
         internal SwitchCase Compile(AutomatonBuilderContext context)
         {
             var stateBody = compileStateBody(context);
-            
+            stateBody = context.MakeVoid(stateBody);
+
             return Expression.SwitchCase(stateBody, Expression.Constant(Id));
         }
 
         private Expression compileStateBody(AutomatonBuilderContext context)
         {
             if (_director != null)
+            {
                 //we can directly compile the action
-                return _director(context);
-
+                if (_targetState == null)
+                    //action without target state
+                    return _director(context);
+                else
+                    return Expression.Block(
+                        _director(context),
+                        context.GoToState(_targetState.Id)
+                        );
+            }
 
             //compile byte switch table
             var byteTargetCases = new List<SwitchCase>();

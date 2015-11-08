@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Linq.Expressions;
 
+using ServeRick2.Http.Parsing;
+
 namespace ServeRick2.Http.HeaderDefinitions
 {
     class ContentRangeHeader : Header<Range>
@@ -27,11 +29,9 @@ namespace ServeRick2.Http.HeaderDefinitions
         }
 
         /// <inheritdoc/>
-        protected override void buildParser()
+        internal override Expression buildBodyParser(AutomatonBuilderContext context)
         {
-            ReadInt(_fromStorage);
-            SwitchToNextState((byte)'-');
-            ReadInt(_toStorage);
+            throw new NotImplementedException();
         }
     }
 }

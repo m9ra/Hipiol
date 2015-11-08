@@ -26,6 +26,11 @@ namespace ServeRick2.Http.Parsing
         private readonly Expression _inputsEndOffset;
 
         /// <summary>
+        /// Constant representing 10. Is used for multiplication.
+        /// </summary>
+        private readonly Expression _10 = Expression.Constant(10);
+
+        /// <summary>
         /// Actual offset in inputs array.
         /// </summary>
         private readonly ParameterExpression _inputsActualOffset = Expression.Variable(typeof(int));
@@ -39,6 +44,11 @@ namespace ServeRick2.Http.Parsing
         /// Field where method is stored.
         /// </summary>
         internal readonly Expression MethodStorage;
+
+        /// <summary>
+        /// Storage with flag determining header parsing completition.
+        /// </summary>
+        internal readonly Expression IsCompleteStorage;
 
         /// <summary>
         /// Storage with blobs array.
@@ -78,6 +88,7 @@ namespace ServeRick2.Http.Parsing
             BlobsStorage = Expression.Field(RequestParameter, "Blobs");
             BlobsOffsetsStorage = Expression.Field(RequestParameter, "BlobsOffsets");
             StateStorage = Expression.Field(RequestParameter, "State");
+            IsCompleteStorage = Expression.Field(RequestParameter, "IsComplete");
 
             _inputs = Expression.Field(RequestParameter, "Inputs");
             _inputsStartOffset = Expression.Field(RequestParameter, "InputsStartOffset");
@@ -86,12 +97,12 @@ namespace ServeRick2.Http.Parsing
 
 
         /// <summary>
-        /// Creates expression reading string from input into indexed storage ending with given chars.
+        /// Creates expression reading blob from input into indexed storage ending with given chars.
         /// </summary>
-        /// <param name="storageIndex">Index of storage where string will be saved.</param>
+        /// <param name="storageIndex">Index of stored blob  will be saved.</param>
         /// <param name="endChars">Characters ending the string.</param>
         /// <returns>Created expression.</returns>
-        internal Expression ReadString(int storageIndex, char[] endChars)
+        internal Expression ExclusiveReadBlob(int storageIndex, char[] endChars)
         {
             Expression charCondition = null;
             foreach (var endChar in endChars)
@@ -110,6 +121,33 @@ namespace ServeRick2.Http.Parsing
                 );
             return Expression.IfThen(charCondition, storeByteBlock);
         }
+
+
+        /// <summary>
+        /// Emits input actions to read int into given storage.
+        /// </summary>
+        /// <param name="intStorageName">Storage where int will be stored.</param>
+        internal Expression ReadInt(string intStorageName)
+        {
+            var switchCases = new List<SwitchCase>();
+            for (var digit = 0; digit < 10; ++digit)
+            {
+                //parse digits
+                var storedInt = Expression.Field(RequestParameter, intStorageName);
+                var multipliedInt = Expression.Multiply(storedInt, _10);
+                var numberStoring = Expression.Assign(storedInt, Expression.Add(multipliedInt, Expression.Constant(digit)));
+
+
+                var switchCase = Expression.SwitchCase(Expression.Block(
+                    numberStoring,
+                    MoveToNextByte()
+                    ), Expression.Constant((byte)digit.ToString()[0]));
+                switchCases.Add(switchCase);
+            }
+
+            return Expression.Switch(InputVariable, switchCases.ToArray());
+        }
+
 
         /// <summary>
         /// Creates expression passing all data until end of line.

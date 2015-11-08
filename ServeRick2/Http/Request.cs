@@ -12,7 +12,11 @@ namespace ServeRick2.Http
     {
         public Method Method;
 
+        public int ContentLength;
+
         #region Parsing storages
+
+        internal bool IsComplete;
 
         internal byte[] Inputs;
 
@@ -23,6 +27,11 @@ namespace ServeRick2.Http
         internal int State;
 
         internal byte[] Blobs = new byte[10000];
+
+        /// <summary>
+        /// Mapping from header to index into blobs offsets (reflects header ordering)
+        /// </summary>
+        internal readonly int[] BlobMapping = new int[10];
 
         internal readonly int[] BlobsOffsets = new int[10];
 

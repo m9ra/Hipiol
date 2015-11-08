@@ -9,7 +9,7 @@ namespace ServeRick2.Http.HeaderDefinitions
     class ContentLengthHeader : IntHeader
     {
         internal ContentLengthHeader()
-            : base("Content-Length")
+            : base("Content-Length", "ContentLength")
         {
         }
     }

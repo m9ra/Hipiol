@@ -21,6 +21,17 @@ namespace ServeRick2.Http.Parsing
         private readonly Dictionary<byte, AutomatonState> _byteTargets = new Dictionary<byte, AutomatonState>();
 
         /// <summary>
+        /// Default target for byte targets table.
+        /// </summary>
+        private AutomatonState _defaultByteTarget;
+
+        /// <summary>
+        /// Actions indexed by triggering bytes.
+        /// </summary>
+        private readonly Dictionary<byte, AutomatonBuilderDirector> _byteActions = new Dictionary<byte, AutomatonBuilderDirector>();
+
+
+        /// <summary>
         /// Target state that will be active after state action is processed.
         /// </summary>
         private AutomatonState _targetState;
@@ -29,6 +40,11 @@ namespace ServeRick2.Http.Parsing
         /// Director that is used for building of state action.
         /// </summary>
         private AutomatonBuilderDirector _director;
+
+        /// <summary>
+        /// Determine whether current state is empty.
+        /// </summary>
+        internal bool IsEmpty { get { return _targetState == null && _byteActions.Count == 0 && _byteTargets.Count == 0; } }
 
         internal AutomatonState(int id)
         {
@@ -42,7 +58,7 @@ namespace ServeRick2.Http.Parsing
         /// <param name="targetState">Target which will be active after the action is processed.</param>
         internal void SetAction(AutomatonBuilderDirector stateActionDirector, AutomatonState targetState)
         {
-            if (_byteTargets.Count > 0)
+            if (_byteTargets.Count > 0 || _byteActions.Count > 0)
                 throw new NotSupportedException("Cannot set state action when byte target is available");
 
             if (stateActionDirector == null)
@@ -73,7 +89,25 @@ namespace ServeRick2.Http.Parsing
             if (_director != null)
                 throw new NotImplementedException("cannot set byte target when state action is present");
 
+            if (_byteTargets.ContainsKey(b) && _byteTargets[b] == target)
+                //target is already set
+                return;
+
             _byteTargets.Add(b, target);
+        }
+
+        /// <summary>
+        /// Sets action for given byte input.
+        /// </summary>
+        /// <param name="b">Condition byte.</param>
+        /// <param name="action">The action.</param>
+        internal void SetByteAction(byte b, AutomatonBuilderDirector action)
+        {
+            if (_director != null)
+                throw new NotImplementedException("cannot set byte target when state action is present");
+
+
+            _byteActions.Add(b, action);
         }
 
         /// <summary>
@@ -115,16 +149,41 @@ namespace ServeRick2.Http.Parsing
             }
 
             //compile byte switch table
-            var byteTargetCases = new List<SwitchCase>();
+            var byteCases = new List<SwitchCase>();
             foreach (var byteTargetPair in _byteTargets)
             {
                 var gotoStateExpression = context.GoToState(byteTargetPair.Value.Id);
 
                 var byteTargetCase = Expression.SwitchCase(gotoStateExpression, Expression.Constant(byteTargetPair.Key));
-                byteTargetCases.Add(byteTargetCase);
+                byteCases.Add(byteTargetCase);
             }
 
-            return Expression.Switch(context.InputVariable, byteTargetCases.ToArray());
+            //compile byte action table
+            foreach (var byteActionPair in _byteActions)
+            {
+                var actionExpression = byteActionPair.Value(context);
+                var byteActionCase = Expression.SwitchCase(context.MakeVoid(actionExpression), Expression.Constant(byteActionPair.Key));
+
+                byteCases.Add(byteActionCase);
+            }
+
+            if (_defaultByteTarget == null)
+            {
+                return Expression.Switch(context.InputVariable, byteCases.ToArray());
+            }
+            else
+            {
+                //we are in state with default target
+                return Expression.Switch(context.InputVariable, context.GoToState(_defaultByteTarget.Id), byteCases.ToArray());
+            }
+        }
+
+        internal void SetDefaultByteTarget(AutomatonState defaultByteTarget)
+        {
+            if (_defaultByteTarget != null && _defaultByteTarget != defaultByteTarget)
+                throw new NotSupportedException("Cannot override default byte target");
+
+            _defaultByteTarget = defaultByteTarget;
         }
     }
 }

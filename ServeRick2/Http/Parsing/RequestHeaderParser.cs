@@ -46,7 +46,7 @@ namespace ServeRick2.Http.Parsing
             });
 
             //read url
-            builder.Emit_ReadString(0, ' ');
+            builder.Emit_ExclusiveReadBlob(0, ' ');
 
             //we skip HTTP version for now
             builder.Emit_PassLine();
@@ -55,12 +55,17 @@ namespace ServeRick2.Http.Parsing
             var headerSwitch = new Dictionary<string, AutomatonBuilderDirector>();
             foreach (var header in headers)
             {
-                headerSwitch.Add(header.Name, header.BuildParser);
+                headerSwitch.Add(header.Name + ": ", header.BuildParser);
             }
 
             //read headers
             if (headerSwitch.Count > 0)
-                builder.Emit_RepeatedActionSwitch(headerSwitch);
+            {
+                builder.Emit_RepeatedActionSwitch(headerSwitch, _passHeader);
+
+                //header ends with empty line
+                builder.Emit_TargetAction((byte)'\n', _headerIsComplete);
+            }
 
             return builder.Compile();
         }
@@ -97,6 +102,19 @@ namespace ServeRick2.Http.Parsing
             return Expression.Assign(context.MethodStorage, Expression.Constant(Method.PUT));
         }
 
+
+        private static Expression _headerIsComplete(AutomatonBuilderContext context)
+        {
+            return Expression.Block(
+                Expression.Assign(context.IsCompleteStorage, Expression.Constant(true)),
+                Expression.Break(context.EndInputReading)
+                );
+        }
+
+        private static Expression _passHeader(AutomatonBuilderContext context) { 
+            //we need to pass header that is not known
+            return context.PassLine();
+        }
         #endregion
     }
 }

@@ -7,24 +7,24 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using ServeRick2.Http.Parsing;
+
 namespace ServeRick2.Http.HeaderDefinitions
 {
     abstract class IntHeader : Header<int>
     {
-        /// <summary>
-        /// Field in request, where parsed number is stored.
-        /// </summary>
-        private readonly FieldInfo _intStorage;
+        internal readonly string FieldName;
 
-        internal IntHeader(string name)
+        internal IntHeader(string name, string fieldName)
             : base(name)
         {
+            FieldName = fieldName;
         }
 
         /// <inheritdoc/>
-        protected override void buildParser()
+        internal override Expression buildBodyParser(AutomatonBuilderContext context)
         {
-            ReadInt(_intStorage);
+            return context.ReadInt(FieldName);
         }
     }
 }

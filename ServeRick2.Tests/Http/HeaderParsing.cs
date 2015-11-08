@@ -12,25 +12,22 @@ using ServeRick2.Http;
 using ServeRick2.Http.Parsing;
 using ServeRick2.Http.HeaderDefinitions;
 
+using ServeRick2.Tests.Utilities;
+
 namespace ServeRick2.Tests.Http
 {
     [TestClass]
     public class HeaderParsing
     {
         [TestMethod]
-        public void SimpleTest()
+        public void HeaderParsing_SimpleTest()
         {
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US"); 
-            var automaton = RequestHeaderParser.CompileAutomaton(new List<Header>());
-
-            var request = new Request();
-            var input = "PUT abcdef HTTP1.0\n";
-            var inputBytes = Encoding.ASCII.GetBytes(input);
-
-            request.Inputs = inputBytes;
-            request.InputsEndOffset = inputBytes.Length;
-
-            automaton(request);
+            var input =
+@"PUT abcdef HTTP/1.1
+Content-Length: 18457
+Cookie: abce=ealejf
+".AssertCompleteRequest()
+ .AssertContentLength(18457);
         }
     }
 }

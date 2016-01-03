@@ -28,10 +28,12 @@ namespace ServeRick2.Http
 
         internal byte[] Blobs = new byte[10000];
 
+        internal int BlobPointer;
+
         /// <summary>
         /// Mapping from header to index into blobs offsets (reflects header ordering)
         /// </summary>
-        internal readonly int[] BlobMapping = new int[10];
+        internal readonly int[] BlobsMapping = new int[10];
 
         internal readonly int[] BlobsOffsets = new int[10];
 

@@ -11,6 +11,21 @@ namespace ServeRick2.Http.Parsing
     class AutomatonBuilderContext
     {
         /// <summary>
+        /// Index of lastly registered blob reader.
+        /// </summary>
+        private int _lastRegisteredBlobReader = 0;
+
+        /// <summary>
+        /// Initial state for routines of shared blob line reader if requested, <c>null</c> otherwise.
+        /// </summary>
+        private AutomatonState _initialSharedBlobLineReader;
+
+        /// <summary>
+        /// States that has been registered.
+        /// </summary>
+        private readonly List<AutomatonState> _registeredStates = new List<AutomatonState>();
+
+        /// <summary>
         /// Array with input bytes to process.
         /// </summary>
         private readonly Expression _inputs;
@@ -41,6 +56,19 @@ namespace ServeRick2.Http.Parsing
         internal readonly ParameterExpression RequestParameter = Expression.Parameter(typeof(Request));
 
         /// <summary>
+        /// Automaton states registered within current context.
+        /// <remarks>WARNING: Collection may be growing during enumeration - usually when <see cref="Compile"/> is called happens.</remarks>
+        /// </summary>
+        internal IEnumerable<AutomatonState> RegisteredStates
+        {
+            get
+            {
+                for (var i = 0; i < _registeredStates.Count; ++i)
+                    yield return _registeredStates[i];
+            }
+        }
+
+        /// <summary>
         /// Field where method is stored.
         /// </summary>
         internal readonly Expression MethodStorage;
@@ -59,6 +87,16 @@ namespace ServeRick2.Http.Parsing
         /// Storage with blobs offsets.
         /// </summary>
         internal readonly Expression BlobsOffsetsStorage;
+
+        /// <summary>
+        /// Index of blob which data are going to be read.
+        /// </summary>
+        internal readonly Expression BlobPointer;
+
+        /// <summary>
+        /// Mapping of blobs.
+        /// </summary>
+        internal readonly Expression BlobsMapping;
 
         /// <summary>
         /// Storage where actual state is stored.
@@ -82,11 +120,14 @@ namespace ServeRick2.Http.Parsing
         /// </summary>
         internal readonly LabelTarget EndInputReading = Expression.Label("EndReading");
 
+
         internal AutomatonBuilderContext()
         {
             MethodStorage = Expression.Field(RequestParameter, "Method");
             BlobsStorage = Expression.Field(RequestParameter, "Blobs");
             BlobsOffsetsStorage = Expression.Field(RequestParameter, "BlobsOffsets");
+            BlobsMapping = Expression.Field(RequestParameter, "BlobsMapping");
+            BlobPointer = Expression.Field(RequestParameter, "BlobPointer");
             StateStorage = Expression.Field(RequestParameter, "State");
             IsCompleteStorage = Expression.Field(RequestParameter, "IsComplete");
 
@@ -122,6 +163,45 @@ namespace ServeRick2.Http.Parsing
             return Expression.IfThen(charCondition, storeByteBlock);
         }
 
+        /// <summary>
+        /// Creates new state for constructed automaton.
+        /// </summary>
+        /// <returns>Created state.</returns>
+        internal AutomatonState CreateNewState()
+        {
+            var state = new AutomatonState(_registeredStates.Count);
+            _registeredStates.Add(state);
+
+            return state;
+        }
+
+        /// <summary>
+        /// Registers index for next blob reader.
+        /// </summary>
+        /// <returns>The registered index.</returns>
+        internal int RegisterBlobReader()
+        {
+            return ++_lastRegisteredBlobReader;
+        }
+
+        /// <summary>
+        /// Creates expression which reads line input into the indexed blob.
+        /// </summary>
+        /// <param name="blobIndex">Index of target blob.</param>
+        /// <returns>The created expression.</returns>
+        internal Expression SharedBlobLineReader(int blobIndex)
+        {
+            //set index of blob to read
+            var blobMap = Expression.ArrayAccess(BlobsMapping, Expression.PostIncrementAssign(BlobPointer));
+            var blobMapAssign = Expression.Assign(blobMap, Expression.Constant(blobIndex));
+
+            //goto to blob reader state
+            var gotoBlob = GoToState(getSharedBlobLineReader());
+            return Expression.Block(
+                blobMapAssign,
+                gotoBlob
+                );
+        }
 
         /// <summary>
         /// Emits input actions to read int into given storage.
@@ -136,7 +216,6 @@ namespace ServeRick2.Http.Parsing
                 var storedInt = Expression.Field(RequestParameter, intStorageName);
                 var multipliedInt = Expression.Multiply(storedInt, _10);
                 var numberStoring = Expression.Assign(storedInt, Expression.Add(multipliedInt, Expression.Constant(digit)));
-
 
                 var switchCase = Expression.SwitchCase(Expression.Block(
                     numberStoring,
@@ -208,11 +287,11 @@ namespace ServeRick2.Http.Parsing
         /// </summary>
         /// <param name="state">State to set.</param>
         /// <returns>The created expression.</returns>
-        internal Expression GoToState(int state)
+        internal Expression GoToState(AutomatonState state)
         {
             return MakeVoid(
                 Expression.Block(
-                    Expression.Assign(StateStorage, Expression.Constant(state)),
+                    Expression.Assign(StateStorage, Expression.Constant(state.Id)),
                     Expression.Continue(MoveNextByteLabel)
                 ));
         }
@@ -269,5 +348,21 @@ namespace ServeRick2.Http.Parsing
         {
             return Expression.ArrayAccess(_inputs, offset);
         }
+
+        #region Private utilities
+
+        /// <summary>
+        /// Gets starting state for shared line blob reader.
+        /// </summary>
+        /// <returns>The state.</returns>
+        private AutomatonState getSharedBlobLineReader()
+        {
+            if (_initialSharedBlobLineReader == null)
+                _initialSharedBlobLineReader = CreateNewState();
+
+            return _initialSharedBlobLineReader;
+        }
+
+        #endregion
     }
 }

@@ -48,6 +48,7 @@
     <Compile Include="Http\Header.cs" />
     <Compile Include="Http\HeaderDefinitions\ContentLengthHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\ContentRangeHeader.cs" />
+    <Compile Include="Http\HeaderDefinitions\CookieHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\IntHeader.cs" />
     <Compile Include="Http\HeaderDefinitions\StringHeader.cs" />
     <Compile Include="Http\Parsing\AutomatonBuilder.cs" />

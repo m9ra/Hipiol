@@ -144,7 +144,7 @@ namespace ServeRick2.Http.Parsing
                 else
                     return Expression.Block(
                         _director(context),
-                        context.GoToState(_targetState.Id)
+                        context.GoToState(_targetState)
                         );
             }
 
@@ -152,7 +152,7 @@ namespace ServeRick2.Http.Parsing
             var byteCases = new List<SwitchCase>();
             foreach (var byteTargetPair in _byteTargets)
             {
-                var gotoStateExpression = context.GoToState(byteTargetPair.Value.Id);
+                var gotoStateExpression = context.GoToState(byteTargetPair.Value);
 
                 var byteTargetCase = Expression.SwitchCase(gotoStateExpression, Expression.Constant(byteTargetPair.Key));
                 byteCases.Add(byteTargetCase);
@@ -174,7 +174,7 @@ namespace ServeRick2.Http.Parsing
             else
             {
                 //we are in state with default target
-                return Expression.Switch(context.InputVariable, context.GoToState(_defaultByteTarget.Id), byteCases.ToArray());
+                return Expression.Switch(context.InputVariable, context.GoToState(_defaultByteTarget), byteCases.ToArray());
             }
         }
 

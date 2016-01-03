@@ -43,7 +43,8 @@ namespace ServeRick2.Tests.Utilities
         internal RequestTest()
         {
             _automaton = RequestHeaderParser.CompileAutomaton(new List<Header>() { 
-                new ContentLengthHeader() 
+                new ContentLengthHeader(),
+                new CookieHeader()
             });
         }
 

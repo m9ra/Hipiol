@@ -20,14 +20,22 @@ namespace ServeRick2.Tests.Http
     public class HeaderParsing
     {
         [TestMethod]
-        public void HeaderParsing_SimpleTest()
+        public void HeaderParsing_ContentLengthTest()
         {
             var input =
 @"PUT abcdef HTTP/1.1
 Content-Length: 18457
-Cookie: abce=ealejf
 ".AssertCompleteRequest()
  .AssertContentLength(18457);
+        }
+
+        [TestMethod]
+        public void HeaderParsing_CookieTest()
+        {
+            var input =
+@"PUT url HTTP/1.1
+Cookie: abce=ealejf
+".AssertCompleteRequest();
         }
     }
 }

@@ -16,11 +16,6 @@ namespace ServeRick2.Http.Parsing
         private readonly AutomatonBuilderContext _context;
 
         /// <summary>
-        /// States that has been registered.
-        /// </summary>
-        private readonly List<AutomatonState> _registeredStates = new List<AutomatonState>();
-
-        /// <summary>
         /// Root state of the automaton.
         /// </summary>
         private readonly AutomatonState _rootState;
@@ -38,7 +33,7 @@ namespace ServeRick2.Http.Parsing
         internal AutomatonBuilder()
         {
             _context = new AutomatonBuilderContext();
-            _rootState = createNewState();
+            _rootState = _context.CreateNewState();
             _lastTargetState = _rootState;
         }
 
@@ -55,7 +50,7 @@ namespace ServeRick2.Http.Parsing
             AutomatonState defaultConditionState = null;
             if (defaultConditionAction != null)
             {
-                defaultConditionState = createNewState();
+                defaultConditionState = _context.CreateNewState();
                 defaultConditionState.SetAction(defaultConditionAction, targetState);
             }
 
@@ -78,7 +73,7 @@ namespace ServeRick2.Http.Parsing
             AutomatonState defaultConditionState = null;
             if (defaultConditionAction != null)
             {
-                defaultConditionState = createNewState();
+                defaultConditionState = _context.CreateNewState();
                 defaultConditionState.SetAction(defaultConditionAction, targetState);
             }
 
@@ -135,7 +130,7 @@ namespace ServeRick2.Http.Parsing
 
             //compile all states
             var stateActions = new List<SwitchCase>();
-            foreach (var state in _registeredStates)
+            foreach (var state in _context.RegisteredStates)
             {
                 var stateCase = state.Compile(_context);
                 stateActions.Add(stateCase);
@@ -162,7 +157,7 @@ namespace ServeRick2.Http.Parsing
 
             if (_repeatedTargetState == null)
             {
-                targetState = createNewState();
+                targetState = _context.CreateNewState();
                 _lastTargetState = targetState;
             }
             else
@@ -170,18 +165,6 @@ namespace ServeRick2.Http.Parsing
                 //target is repeated
                 targetState = _lastTargetState;
             }
-        }
-
-        /// <summary>
-        /// Creates new state for constructed automaton.
-        /// </summary>
-        /// <returns>Created state.</returns>
-        private AutomatonState createNewState()
-        {
-            var state = new AutomatonState(_registeredStates.Count);
-            _registeredStates.Add(state);
-
-            return state;
         }
 
         /// <summary>
@@ -201,7 +184,7 @@ namespace ServeRick2.Http.Parsing
                 var byteUpper = (byte)char.ToUpper(ch);
                 if (!currentState.HasByteTarget(byteLower))
                 {
-                    var nextState = createNewState();
+                    var nextState = _context.CreateNewState();
                     currentState.SetByteTarget(byteLower, nextState);
                     currentState.SetByteTarget(byteUpper, nextState);
                 }
